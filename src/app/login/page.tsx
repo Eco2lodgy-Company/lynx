@@ -32,7 +32,7 @@ export default function LoginPage() {
             }
 
             // Fetch session to get role and redirect
-            const res = await fetch("/lynx/api/auth/session");
+            const res = await fetch("/api/auth/session");
             const session = await res.json();
             const role = session?.user?.role;
 
