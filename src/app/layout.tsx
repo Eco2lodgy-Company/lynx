@@ -32,6 +32,7 @@ export const viewport = {
 };
 
 import PWAManager from "@/components/PWAManager";
+import Providers from "@/components/Providers";
 
 export default function RootLayout({
   children,
@@ -43,8 +44,10 @@ export default function RootLayout({
       <body
         className={`${inter.variable} font-sans bg-background-dark text-slate-100 min-h-screen antialiased`}
       >
-        <PWAManager />
-        {children}
+        <Providers>
+          <PWAManager />
+          {children}
+        </Providers>
       </body>
     </html>
   );
