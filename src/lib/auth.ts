@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+    basePath: "/lynx/api/auth",
     providers: [
         Credentials({
             name: "credentials",
