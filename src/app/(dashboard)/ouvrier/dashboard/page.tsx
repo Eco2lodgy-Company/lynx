@@ -222,7 +222,11 @@ export default async function OuvrierDashboard() {
                 {/* Completion & Attendance */}
                 <div className="space-y-4">
                     {/* Attendance Action */}
-                    <AttendanceAction initialAttendance={attendance} />
+                    <AttendanceAction initialAttendance={attendance ? {
+                        id: attendance.id,
+                        checkIn: attendance.checkIn?.toISOString() || new Date().toISOString(),
+                        status: attendance.status
+                    } : null} />
 
                     {/* Completion rate */}
                     <div className="card animate-fade-in stagger-3">
