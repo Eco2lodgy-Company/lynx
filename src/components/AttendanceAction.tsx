@@ -133,7 +133,7 @@ export default function AttendanceAction({ initialAttendance }: AttendanceAction
             )}
 
             <button
-                onClick={handleCheckIn}
+                onClick={() => handleCheckIn(false)}
                 disabled={loading}
                 className="btn-primary w-full justify-center !py-4 text-sm font-bold uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
