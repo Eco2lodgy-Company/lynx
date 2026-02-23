@@ -17,6 +17,7 @@ import {
     AlertCircle,
     Info,
 } from "lucide-react";
+import PhotoCapture, { type Photo } from "@/components/ReportPhotoCapture";
 
 interface ProjectRef { id: string; name: string; }
 interface ReporterRef { id: string; firstName: string; lastName: string; }
