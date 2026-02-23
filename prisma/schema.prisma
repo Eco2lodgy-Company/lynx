@@ -1,0 +1,468 @@
+// =============================================================================
+// LYNX — Application de Gestion de Chantier
+// Développée par Next Grade Services (NGS)
+// Schéma Prisma — SQLite (Dev) → PostgreSQL (Prod)
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// UTILISATEURS & AUTHENTIFICATION
+// =============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  phone     String?
+  role      String   @default("OUVRIER") // ADMIN, CONDUCTEUR, CHEF_EQUIPE, CLIENT, OUVRIER
+  avatar    String?
+  isActive  Boolean  @default(true)
+  qrToken   String?  @unique // Token unique pour le pointage QR
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?
+
+  // Chef d'équipe - équipes gérées
+  managedTeams   Team[]       @relation("TeamLeader")
+  teamMembership TeamMember[]
+
+  // Conducteur - projets supervisés
+  supervisedProjects Project[] @relation("ProjectSupervisor")
+
+  // Client - projets possédés
+  ownedProjects Project[] @relation("ProjectClient")
+
+  // Activités
+  attendanceRecords Attendance[]
+  dailyLogs         DailyLog[]
+  incidents         Incident[]       @relation("IncidentReporter")
+  taskAssignments   TaskAssignment[]
+  comments          Comment[]
+  notifications     Notification[]
+  uploadedPhotos    Photo[]          @relation("PhotoUploader")
+  feedbacks         Feedback[]       @relation("FeedbackAuthor")
+
+  // Réponses aux messages
+  feedbackReplies FeedbackReply[]
+
+  // Pointages validés (pour Chef d'équipe)
+  validatedAttendances Attendance[] @relation("AttendanceValidator")
+
+  @@map("users")
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users    User[]
+  teams    Team[]
+  projects Project[]
+
+  @@map("departments")
+}
+
+// =============================================================================
+// ÉQUIPES
+// =============================================================================
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  leader       User?       @relation("TeamLeader", fields: [leaderId], references: [id])
+  leaderId     String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?
+
+  members      TeamMember[]
+  projectTeams ProjectTeam[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  joinedAt DateTime @default(now())
+
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+// =============================================================================
+// PROJETS & CHANTIERS
+// =============================================================================
+
+model Project {
+  id               String    @id @default(cuid())
+  name             String
+  description      String?
+  address          String?
+  latitude         Float?
+  longitude        Float?
+  status           String    @default("PLANIFIE") // PLANIFIE, EN_COURS, EN_PAUSE, TERMINE, ANNULE
+  priority         String    @default("NORMALE") // BASSE, NORMALE, HAUTE, URGENTE
+  startDate        DateTime?
+  estimatedEndDate DateTime?
+  actualEndDate    DateTime?
+  budget           Float?
+  progress         Float     @default(0) // 0-100
+  coverImage       String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  supervisor   User?       @relation("ProjectSupervisor", fields: [supervisorId], references: [id])
+  supervisorId String?
+  client       User?       @relation("ProjectClient", fields: [clientId], references: [id])
+  clientId     String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?
+
+  phases       Phase[]
+  tasks        Task[]
+  dailyLogs    DailyLog[]
+  incidents    Incident[]
+  documents    Document[]
+  photos       Photo[]
+  reports      Report[]
+  attendances  Attendance[]
+  projectTeams ProjectTeam[]
+  feedbacks    Feedback[]
+
+  @@map("projects")
+}
+
+model ProjectTeam {
+  id         String   @id @default(cuid())
+  assignedAt DateTime @default(now())
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  team      Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId    String
+
+  @@unique([projectId, teamId])
+  @@map("project_teams")
+}
+
+// =============================================================================
+// PHASES & TÂCHES
+// =============================================================================
+
+model Phase {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  order       Int       @default(0)
+  status      String    @default("A_FAIRE") // A_FAIRE, EN_COURS, TERMINE
+  startDate   DateTime?
+  endDate     DateTime?
+  progress    Float     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  tasks     Task[]
+
+  @@map("phases")
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  status      String    @default("A_FAIRE") // A_FAIRE, EN_COURS, EN_ATTENTE, TERMINE, ANNULE
+  priority    String    @default("NORMALE") // BASSE, NORMALE, HAUTE, URGENTE
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  progress    Float     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  phase     Phase?  @relation(fields: [phaseId], references: [id])
+  phaseId   String?
+  parent    Task?   @relation("SubTasks", fields: [parentId], references: [id])
+  parentId  String?
+
+  subTasks    Task[]           @relation("SubTasks")
+  assignments TaskAssignment[]
+  comments    Comment[]
+
+  @@map("tasks")
+}
+
+model TaskAssignment {
+  id         String   @id @default(cuid())
+  assignedAt DateTime @default(now())
+
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@unique([taskId, userId])
+  @@map("task_assignments")
+}
+
+// =============================================================================
+// POINTAGE / PRÉSENCE
+// =============================================================================
+
+model Attendance {
+  id        String    @id @default(cuid())
+  date      DateTime
+  checkIn   DateTime?
+  checkOut  DateTime?
+  status    String    @default("EN_ATTENTE") // EN_ATTENTE (soumis par ouvrier), VALIDE (par chef), ABSENT, RETARD, CONGE
+  latitude  Float?
+  longitude Float?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Le chef d'équipe qui a validé
+  validatedBy   User?   @relation("AttendanceValidator", fields: [validatedById], references: [id])
+  validatedById String?
+
+  project   Project? @relation(fields: [projectId], references: [id])
+  projectId String?
+
+  @@unique([userId, date])
+  @@map("attendances")
+}
+
+// =============================================================================
+// JOURNAL DE CHANTIER
+// =============================================================================
+
+model DailyLog {
+  id            String   @id @default(cuid())
+  date          DateTime
+  weather       String? // ENSOLEILLE, NUAGEUX, PLUVIEUX, NEIGEUX, VENTEUX
+  temperature   Float?
+  summary       String?
+  workCompleted String?
+  issues        String?
+  materials     String?
+  status        String   @default("BROUILLON") // BROUILLON, SOUMIS, VALIDE, REJETE
+  rejectionNote String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  author    User    @relation(fields: [authorId], references: [id])
+  authorId  String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+
+  photos   Photo[]
+  comments Comment[]
+
+  @@unique([authorId, projectId, date])
+  @@map("daily_logs")
+}
+
+// =============================================================================
+// INCIDENTS
+// =============================================================================
+
+model Incident {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  severity    String    @default("MOYENNE") // FAIBLE, MOYENNE, HAUTE, CRITIQUE
+  status      String    @default("OUVERT") // OUVERT, EN_COURS, RESOLU, FERME
+  location    String?
+  date        DateTime  @default(now())
+  resolvedAt  DateTime?
+  resolution  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  reporter   User    @relation("IncidentReporter", fields: [reporterId], references: [id])
+  reporterId String
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId  String
+
+  photos   Photo[]
+  comments Comment[]
+
+  @@map("incidents")
+}
+
+// =============================================================================
+// PHOTOS & DOCUMENTS
+// =============================================================================
+
+model Photo {
+  id        String   @id @default(cuid())
+  url       String
+  caption   String?
+  latitude  Float?
+  longitude Float?
+  takenAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  project      Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId    String?
+  dailyLog     DailyLog? @relation(fields: [dailyLogId], references: [id])
+  dailyLogId   String?
+  incident     Incident? @relation(fields: [incidentId], references: [id])
+  incidentId   String?
+  report       Report?   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  reportId     String?
+  uploadedBy   User?     @relation("PhotoUploader", fields: [uploadedById], references: [id])
+  uploadedById String?
+
+  @@map("photos")
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  name      String
+  type      String // PDF, PLAN, PERMIS, CONTRAT, AUTRE
+  url       String
+  size      Int? // en bytes
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+
+  @@map("documents")
+}
+
+// =============================================================================
+// RAPPORTS
+// =============================================================================
+
+model Report {
+  id          String    @id @default(cuid())
+  title       String
+  type        String // HEBDOMADAIRE, MENSUEL, INCIDENT, AVANCEMENT
+  content     String?
+  pdfUrl      String?
+  status      String    @default("BROUILLON") // BROUILLON, PUBLIE
+  periodStart DateTime?
+  periodEnd   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+
+  photos Photo[]
+
+  @@map("reports")
+}
+
+// =============================================================================
+// COMMENTAIRES
+// =============================================================================
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author     User      @relation(fields: [authorId], references: [id])
+  authorId   String
+  task       Task?     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId     String?
+  dailyLog   DailyLog? @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  dailyLogId String?
+  incident   Incident? @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  incidentId String?
+
+  @@map("comments")
+}
+
+// =============================================================================
+// NOTIFICATIONS
+// =============================================================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String // INFO, ALERTE, VALIDATION, TACHE, INCIDENT
+  isRead    Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@map("notifications")
+}
+
+// =============================================================================
+// FEEDBACK CLIENT
+// =============================================================================
+
+model Feedback {
+  id        String   @id @default(cuid())
+  subject   String
+  message   String
+  content   String? // legacy field
+  status    String   @default("EN_ATTENTE") // EN_ATTENTE, EN_COURS, RESOLU, FERME
+  priority  String   @default("NORMALE") // BASSE, NORMALE, HAUTE, URGENTE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  author    User?   @relation("FeedbackAuthor", fields: [authorId], references: [id])
+  authorId  String?
+
+  replies FeedbackReply[]
+
+  @@map("feedbacks")
+}
+
+model FeedbackReply {
+  id        String   @id @default(cuid())
+  content   String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  feedbackId String
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   String
+
+  @@map("feedback_replies")
+}
