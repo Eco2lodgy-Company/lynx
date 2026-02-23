@@ -1,8 +1,8 @@
 const CACHE_NAME = 'ecotech-cache-v1';
 const ASSETS_TO_CACHE = [
-    '/',
-    '/manifest.json',
-    '/icon.svg',
+    '/lynx/',
+    '/lynx/manifest.json',
+    '/lynx/icon.svg',
 ];
 
 self.addEventListener('install', (event) => {
