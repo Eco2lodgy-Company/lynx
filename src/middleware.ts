@@ -24,13 +24,13 @@ export default auth((req) => {
             CLIENT: "/client/dashboard",
             OUVRIER: "/ouvrier/dashboard",
         };
-        const redirect = redirectMap[userRole] || "/login";
-        return NextResponse.redirect(new URL(redirect, nextUrl));
+        const target = redirectMap[userRole] || "/login";
+        return NextResponse.redirect(new URL(`/lynx${target}`, nextUrl.origin));
     }
 
     // Rediriger vers login si non connecté et route protégée
     if (!isLoggedIn && !isPublicRoute) {
-        return NextResponse.redirect(new URL("/login", nextUrl));
+        return NextResponse.redirect(new URL("/lynx/login", nextUrl.origin));
     }
 
     // Vérification des accès par rôle
@@ -63,7 +63,8 @@ export default auth((req) => {
                     CLIENT: "/client/dashboard",
                     OUVRIER: "/ouvrier/dashboard",
                 };
-                return NextResponse.redirect(new URL(redirectMap[userRole] || "/login", nextUrl));
+                const target = redirectMap[userRole] || "/login";
+                return NextResponse.redirect(new URL(`/lynx${target}`, nextUrl.origin));
             }
         }
     }
