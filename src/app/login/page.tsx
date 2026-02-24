@@ -184,7 +184,9 @@ export default function LoginPage() {
                 {/* Footer - Professional */}
                 <div className="text-center mt-12 animate-fade-in stagger-3">
                     <p className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.3em]">
-                        © 2024 LYNX NGS Platform
+                        © 2024 ECOTECH Platform
+                        <br />
+                        <span className="text-[10px] opacity-50">powered by NGS</span>
                     </p>
                     <div className="flex items-center justify-center gap-4 mt-4 opacity-30">
                         <div className="h-[1px] w-8 bg-slate-700" />

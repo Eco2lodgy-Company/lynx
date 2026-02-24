@@ -15,15 +15,15 @@ export const metadata: Metadata = {
   description:
     "Plateforme ECOTECH : Solution de gestion de chantier développée par Next Grade Services (NGS). Suivi de projets, pointage, rapports et communication en temps réel.",
   keywords: ["gestion chantier", "BTP", "construction", "ECOTECH", "NGS"],
-  manifest: "/manifest.json",
+  manifest: "/lynx/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "ECOTECH",
   },
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: "/lynx/icon.svg",
+    apple: "/lynx/icon.svg",
   },
 };
 

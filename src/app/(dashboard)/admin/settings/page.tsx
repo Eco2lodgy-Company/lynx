@@ -30,7 +30,7 @@ export default function AdminSettingsPage() {
                     </div>
                     <div className="space-y-3 text-sm">
                         {[
-                            { label: "Nom", value: "LYNX — NGS Platform" },
+                            { label: "Nom", value: "ECOTECH Platform — powered by NGS" },
                             { label: "Version", value: "1.0.0" },
                             { label: "Framework", value: "Next.js 16 (App Router)" },
                             { label: "Base de données", value: "SQLite (dev) / PostgreSQL (prod)" },

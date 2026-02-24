@@ -137,7 +137,8 @@ export default function Sidebar({ userRole, userName, userAvatar }: SidebarProps
                             <h1 className="text-xl font-bold text-white tracking-widest flex items-center gap-1">
                                 ECOTECH <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />
                             </h1>
-                            <p className="text-[9px] text-primary/60 font-bold tracking-[0.2em] uppercase">NGS Platform</p>
+                            <p className="text-[9px] text-primary/60 font-bold tracking-[0.2em] uppercase">ECOTECH Platform</p>
+                            <p className="text-[8px] text-slate-600 font-medium">powered by NGS</p>
                         </div>
                     </div>
                     <button
