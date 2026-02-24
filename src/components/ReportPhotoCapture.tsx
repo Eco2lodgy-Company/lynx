@@ -1,4 +1,5 @@
 "use client";
+import { assetUrl } from "@/lib/assets";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import {
@@ -432,7 +433,7 @@ export default function PhotoCapture({ entityId, apiPath, photos, onPhotosChange
                         >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                                src={photo.url}
+                                src={assetUrl(photo.url)}
                                 alt={photo.caption || "Photo rapport"}
                                 className="w-full h-full object-cover"
                             />
@@ -484,7 +485,7 @@ export default function PhotoCapture({ entityId, apiPath, photos, onPhotosChange
                         {/* Photo */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src={viewPhoto.url}
+                            src={assetUrl(viewPhoto.url)}
                             alt={viewPhoto.caption || "Photo"}
                             className="w-full max-h-[60vh] object-contain bg-black rounded-t-2xl"
                         />

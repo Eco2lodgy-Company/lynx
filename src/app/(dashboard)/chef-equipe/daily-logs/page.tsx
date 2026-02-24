@@ -1,4 +1,5 @@
 "use client";
+import { assetUrl } from "@/lib/assets";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -289,7 +290,7 @@ export default function DailyLogsPage() {
                                     <div className="flex gap-1.5 mt-2 overflow-x-auto pb-1">
                                         {log.photos.slice(0, 6).map((p) => (
                                             // eslint-disable-next-line @next/next/no-img-element
-                                            <img key={p.id} src={p.url} alt="" className="w-10 h-10 rounded-lg object-cover border border-border-dark shrink-0" />
+                                            <img key={p.id} src={assetUrl(p.url)} alt="" className="w-10 h-10 rounded-lg object-cover border border-border-dark shrink-0" />
                                         ))}
                                     </div>
                                 )}

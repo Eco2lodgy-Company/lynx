@@ -1,4 +1,5 @@
 "use client";
+import { assetUrl } from "@/lib/assets";
 
 import { useState, useEffect } from "react";
 import {
@@ -182,7 +183,7 @@ export default function FeedbackDetailModal({
                                             {reply.imageUrl && (
                                                 <div className="mb-3 rounded-lg overflow-hidden border border-white/10 shadow-lg bg-black/50">
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={reply.imageUrl} alt="Partagé" className="max-w-full max-h-[300px] object-contain mx-auto" />
+                                                    <img src={assetUrl(reply.imageUrl)} alt="Partagé" className="max-w-full max-h-[300px] object-contain mx-auto" />
                                                 </div>
                                             )}
                                             {reply.content && <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{reply.content}</p>}

@@ -1,4 +1,5 @@
 "use client";
+import { assetUrl } from "@/lib/assets";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -165,7 +166,7 @@ export default function ClientReportsPage() {
                                             <div className="flex gap-1.5 mt-3 overflow-hidden rounded-lg">
                                                 {r.photos.slice(0, 3).map((p, idx) => (
                                                     <div key={p.id} className="relative aspect-video w-full max-w-[80px] overflow-hidden bg-slate-800">
-                                                        <img src={p.url} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                                                        <img src={assetUrl(p.url)} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                                                         {idx === 2 && r.photos.length > 3 && (
                                                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-[10px] font-bold text-white">
                                                                 +{r.photos.length - 3}
@@ -267,7 +268,7 @@ export default function ClientReportsPage() {
                                     <div className="grid grid-cols-2 gap-4">
                                         {preview.photos.map((photo) => (
                                             <div key={photo.id} className="group relative aspect-video rounded-2xl overflow-hidden bg-slate-900 border border-white/5 shadow-lg">
-                                                <img src={photo.url} alt={photo.caption || "Photo du rapport"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                <img src={assetUrl(photo.url)} alt={photo.caption || "Photo du rapport"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                 {photo.caption && (
                                                     <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
                                                         <p className="text-[10px] text-white/90 line-clamp-1 italic">{photo.caption}</p>

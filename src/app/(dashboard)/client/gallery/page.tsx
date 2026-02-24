@@ -1,4 +1,5 @@
 "use client";
+import { assetUrl } from "@/lib/assets";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -113,7 +114,7 @@ export default function ClientGalleryPage() {
                         >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                                src={photo.url}
+                                src={assetUrl(photo.url)}
                                 alt={photo.caption || "Photo de chantier"}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             />
@@ -154,7 +155,7 @@ export default function ClientGalleryPage() {
                         </button>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src={lightbox.url}
+                            src={assetUrl(lightbox.url)}
                             alt={lightbox.caption || "Photo de chantier"}
                             className="w-full max-h-[75vh] object-contain rounded-xl"
                         />

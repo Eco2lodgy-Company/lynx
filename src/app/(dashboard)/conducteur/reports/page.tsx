@@ -1,4 +1,5 @@
 "use client";
+import { assetUrl } from "@/lib/assets";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -275,7 +276,7 @@ export default function ConducteurReportsPage() {
                                     <div className="flex gap-1.5 mt-3 pt-3 border-t border-border-dark/30 overflow-x-auto">
                                         {r.photos.slice(0, 5).map((p) => (
                                             // eslint-disable-next-line @next/next/no-img-element
-                                            <img key={p.id} src={p.url} alt={p.caption || ""} className="w-12 h-12 rounded-lg object-cover border border-border-dark shrink-0" />
+                                            <img key={p.id} src={assetUrl(p.url)} alt={p.caption || ""} className="w-12 h-12 rounded-lg object-cover border border-border-dark shrink-0" />
                                         ))}
                                         {r.photos.length > 5 && (
                                             <div className="w-12 h-12 rounded-lg bg-slate-800 border border-border-dark flex items-center justify-center text-[10px] text-slate-400 shrink-0">
