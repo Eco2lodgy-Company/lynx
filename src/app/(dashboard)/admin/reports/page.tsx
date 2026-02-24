@@ -332,12 +332,18 @@ export default function ReportsPage() {
                             <div className="space-y-1">
                                 <label className="text-xs font-medium text-slate-400">PDF joint (optionnel)</label>
                                 <input
-                                    type="date"
-                                    value={filters.startDate}
-                                    onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                                    className="input-field"
-                                    title="Date de début"
+                                    type="file"
+                                    accept="application/pdf"
+                                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                    className="block w-full text-xs text-slate-400
+                                        file:mr-4 file:py-2 file:px-4
+                                        file:rounded-lg file:border-0
+                                        file:text-xs file:font-semibold
+                                        file:bg-primary/10 file:text-primary
+                                        hover:file:bg-primary/20 transition-all"
+                                    title="Choisir un PDF"
                                 />
+                                {file && <p className="text-[10px] text-emerald-400">Fichier sélectionné : {file.name}</p>}
                             </div>
                             <p className="text-[10px] text-slate-500 italic flex items-center gap-1">
                                 <Camera className="w-3 h-3" /> Vous pourrez ajouter des photos géolocalisées après la création du rapport.
