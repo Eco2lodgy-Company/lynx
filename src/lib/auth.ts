@@ -4,6 +4,10 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+    // Required: tell Auth.js where its routes live.
+    // Next.js strips its own basePath (/lynx) before the handler sees the URL,
+    // but Auth.js needs to know the FULL external path for cookies, redirects, etc.
+    basePath: "/lynx/api/auth",
     providers: [
         Credentials({
             name: "credentials",
@@ -61,38 +65,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     pages: {
         signIn: "/login",
-        error: "/login",
+        error: "/login", // Prevents redirect to the invalid /api/auth/error endpoint
     },
     session: {
         strategy: "jwt",
-    },
-    cookies: {
-        sessionToken: {
-            name: `lynx-auth.session-token`,
-            options: {
-                httpOnly: true,
-                sameSite: "lax",
-                path: "/lynx",
-                secure: process.env.NODE_ENV === "production",
-            },
-        },
-        callbackUrl: {
-            name: `lynx-auth.callback-url`,
-            options: {
-                httpOnly: true,
-                sameSite: "lax",
-                path: "/lynx",
-                secure: process.env.NODE_ENV === "production",
-            },
-        },
-        csrfToken: {
-            name: `lynx-auth.csrf-token`,
-            options: {
-                httpOnly: true,
-                sameSite: "lax",
-                path: "/lynx",
-                secure: process.env.NODE_ENV === "production",
-            },
-        },
     },
 });
