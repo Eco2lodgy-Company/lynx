@@ -274,13 +274,24 @@ export default function ClientReportsPage() {
                                                         <p className="text-[10px] text-white/90 line-clamp-1 italic">{photo.caption}</p>
                                                     </div>
                                                 )}
-                                                <button
-                                                    onClick={() => window.open(photo.url, '_blank')}
-                                                    className="absolute top-3 right-3 p-2 bg-black/60 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-primary hover:text-navy-900"
-                                                    title="Agrandir"
-                                                >
-                                                    <ZoomIn className="w-3.5 h-3.5" />
-                                                </button>
+                                                <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <button
+                                                        onClick={() => window.open(assetUrl(photo.url), '_blank')}
+                                                        className="p-2 bg-black/60 text-white rounded-xl hover:bg-primary hover:text-navy-900 transition-all"
+                                                        title="Agrandir"
+                                                    >
+                                                        <ZoomIn className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <a
+                                                        href={assetUrl(photo.url)}
+                                                        download={`rapport-${photo.id}.jpg`}
+                                                        className="p-2 bg-black/60 text-white rounded-xl hover:bg-emerald-500 hover:text-white transition-all"
+                                                        title="Télécharger"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <Download className="w-3.5 h-3.5" />
+                                                    </a>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>

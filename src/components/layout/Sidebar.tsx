@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { assetUrl } from "@/lib/assets";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import NotificationBell from "@/components/NotificationBell";
@@ -191,7 +192,7 @@ export default function Sidebar({ userRole, userName, userAvatar }: SidebarProps
                         <div className="relative">
                             {userAvatar ? (
                                 <img
-                                    src={userAvatar}
+                                    src={assetUrl(userAvatar)}
                                     alt={`Avatar de ${userName}`}
                                     className="w-12 h-12 rounded-xl object-cover border-2 border-white/10 group-hover:border-primary/50 transition-all duration-300 shadow-lg"
                                 />

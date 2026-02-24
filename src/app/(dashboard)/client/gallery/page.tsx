@@ -11,6 +11,7 @@ import {
     MapPin,
     Calendar,
     ZoomIn,
+    Download,
 } from "lucide-react";
 
 interface Photo {
@@ -179,6 +180,17 @@ export default function ClientGalleryPage() {
                                         {lightbox.latitude.toFixed(4)}, {lightbox.longitude.toFixed(4)}
                                     </p>
                                 )}
+                                <div className="pt-2">
+                                    <a
+                                        href={assetUrl(lightbox.url)}
+                                        download={`lynx-${lightbox.id}.jpg`}
+                                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/20 text-primary border border-primary/30 rounded-lg hover:bg-primary hover:text-navy-900 transition-all text-xs font-bold"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <Download className="w-3 h-3" />
+                                        Télécharger
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

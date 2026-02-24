@@ -1,4 +1,5 @@
 "use client";
+import { assetUrl } from "@/lib/assets";
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
@@ -37,7 +38,7 @@ export default function ProfilePage() {
 
             if (!updateRes.ok) throw new Error("Erreur mise à jour profil");
 
-            await update({ user: { ...session?.user, avatar: url } });
+            await update({ user: { ...session?.user, image: url } });
             setMessage({ type: "success", text: "Photo de profil mise à jour !" });
         } catch (err) {
             console.error(err);
@@ -108,10 +109,11 @@ export default function ProfilePage() {
                             <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-surface-dark bg-surface-dark shadow-xl relative">
                                 {session.user.image ? (
                                     <Image
-                                        src={session.user.image}
+                                        src={assetUrl(session.user.image)}
                                         alt="Avatar"
                                         fill
                                         className="object-cover"
+                                        unoptimized // Handle local uploads correctly
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary text-4xl font-bold">
