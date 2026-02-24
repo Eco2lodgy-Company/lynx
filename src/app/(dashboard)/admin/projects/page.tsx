@@ -261,13 +261,15 @@ export default function ProjectsPage() {
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Rechercher un projet..."
                         className="input-field pl-10"
+                        title="Rechercher un projet"
                     />
                 </div>
                 <div className="relative">
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="input-field pr-10 appearance-none min-w-[180px]"
+                        className="input-field pr-10 appearance-none min-w-[140px]"
+                        title="Filtrer par statut"
                     >
                         <option value="">Tous les statuts</option>
                         {Object.entries(STATUS_MAP).map(([key, val]) => (
@@ -317,10 +319,10 @@ export default function ProjectsPage() {
                                         </button>
                                         {deleteConfirm === project.id ? (
                                             <div className="flex gap-1">
-                                                <button onClick={() => handleDelete(project.id)} className="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded">
+                                                <button onClick={() => handleDelete(project.id)} className="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded" title="Confirmer la suppression">
                                                     Oui
                                                 </button>
-                                                <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded">
+                                                <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded" title="Annuler la suppression">
                                                     Non
                                                 </button>
                                             </div>
