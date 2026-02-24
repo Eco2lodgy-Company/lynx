@@ -215,7 +215,7 @@ export default function Sidebar({ userRole, userName, userAvatar }: SidebarProps
                     </Link>
 
                     <button
-                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        onClick={() => signOut({ callbackUrl: "/lynx/login" })}
                         className="w-full flex items-center justify-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20 shadow-sm"
                     >
                         <LogOut className="w-4 h-4" />
