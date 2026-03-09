@@ -36,7 +36,7 @@ export default auth((req) => {
     // Vérification des accès par rôle
     if (isLoggedIn && userRole) {
         const roleRoutes: Record<string, string[]> = {
-            ADMIN: ["/admin"],
+            ADMIN: ["/admin", "/conducteur"],
             CONDUCTEUR: ["/conducteur"],
             CHEF_EQUIPE: ["/chef-equipe"],
             CLIENT: ["/client"],

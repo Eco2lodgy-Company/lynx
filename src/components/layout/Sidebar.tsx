@@ -51,6 +51,12 @@ const navItemsByRole: Record<string, NavItem[]> = {
         { label: "Statistiques", href: "/admin/stats", icon: <BarChart3 className="w-5 h-5" /> },
         { label: "Planning", href: "/admin/planning", icon: <Calendar className="w-5 h-5" /> },
         { label: "Paramètres", href: "/admin/settings", icon: <Settings className="w-5 h-5" /> },
+        // — Fonctions terrain (Conducteur) —
+        { label: "── Terrain ──", href: "#", icon: <HardHat className="w-5 h-5" /> },
+        { label: "Validations", href: "/conducteur/validations", icon: <CheckSquare className="w-5 h-5" /> },
+        { label: "Tâches terrain", href: "/conducteur/tasks", icon: <CheckSquare className="w-5 h-5" /> },
+        { label: "Incidents terrain", href: "/conducteur/incidents", icon: <AlertTriangle className="w-5 h-5" /> },
+        { label: "Projets terrain", href: "/conducteur/projects", icon: <FolderKanban className="w-5 h-5" /> },
     ],
     CONDUCTEUR: [
         { label: "Tableau de bord", href: "/conducteur/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -157,6 +163,18 @@ export default function Sidebar({ userRole, userName, userAvatar }: SidebarProps
                             Menu Principal
                         </p>
                         {navItems.map((item) => {
+                            // Separator item
+                            if (item.href === "#") {
+                                return (
+                                    <div key={item.label} className="pt-4 pb-2 px-4">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 opacity-50">
+                                            {item.icon}
+                                            <span>{item.label.replace(/─/g, "").trim()}</span>
+                                        </div>
+                                        <div className="border-t border-border-dark/50 mt-2" />
+                                    </div>
+                                );
+                            }
                             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
                             return (
                                 <Link
