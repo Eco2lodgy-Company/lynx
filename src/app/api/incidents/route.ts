@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { notifyAdminsAndSupervisor } from "@/lib/notifications";
+import { logAudit, AuditActions } from "@/lib/audit";
 
 // GET /api/incidents
 export async function GET(req: NextRequest) {
@@ -85,6 +86,19 @@ export async function POST(req: NextRequest) {
             type: "INCIDENT",
             link: `/conducteur/incidents`,
             excludeUserId: session.user.id,
+        });
+
+        // Audit trail
+        await logAudit({
+            userId: session.user.id,
+            action: AuditActions.CREATE_INCIDENT,
+            entity: "Incident",
+            entityId: incident.id,
+            details: {
+                title,
+                severity: severity || "MOYENNE",
+                projectName: incident.project.name,
+            },
         });
 
         return NextResponse.json(incident, { status: 201 });

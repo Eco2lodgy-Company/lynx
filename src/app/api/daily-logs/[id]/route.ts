@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { createNotification } from "@/lib/notifications";
+import { logAudit, AuditActions } from "@/lib/audit";
 
 // PUT /api/daily-logs/:id
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -46,6 +47,19 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
                     : `${validatorName} a rejeté votre journal du ${new Date(log.date).toLocaleDateString("fr-FR")} — ${log.project.name}${body.rejectionNote ? ` : "${body.rejectionNote}"` : ""}`,
                 type: "VALIDATION",
                 link: `/chef-equipe/daily-logs`,
+            });
+
+            // Audit trail
+            await logAudit({
+                userId: session.user.id,
+                action: isValidated ? AuditActions.VALIDATE_LOG : AuditActions.REJECT_LOG,
+                entity: "DailyLog",
+                entityId: id,
+                details: {
+                    projectName: log.project.name,
+                    author: `${log.author.firstName} ${log.author.lastName}`,
+                    ...(body.rejectionNote ? { rejectionNote: body.rejectionNote } : {}),
+                },
             });
         }
 

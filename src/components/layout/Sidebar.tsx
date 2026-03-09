@@ -25,6 +25,7 @@ import {
     BarChart3,
     Image,
     Building2,
+    Shield,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -51,6 +52,7 @@ const navItemsByRole: Record<string, NavItem[]> = {
         { label: "Statistiques", href: "/admin/stats", icon: <BarChart3 className="w-5 h-5" /> },
         { label: "Planning", href: "/admin/planning", icon: <Calendar className="w-5 h-5" /> },
         { label: "Paramètres", href: "/admin/settings", icon: <Settings className="w-5 h-5" /> },
+        { label: "Audit", href: "/admin/audit", icon: <Shield className="w-5 h-5" /> },
         // — Fonctions terrain (Conducteur) —
         { label: "── Terrain ──", href: "#", icon: <HardHat className="w-5 h-5" /> },
         { label: "Validations", href: "/conducteur/validations", icon: <CheckSquare className="w-5 h-5" /> },
