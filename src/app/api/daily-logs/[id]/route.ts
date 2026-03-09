@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { createNotification } from "@/lib/notifications";
 
 // PUT /api/daily-logs/:id
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -21,6 +22,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (body.issues !== undefined) updateData.issues = body.issues;
         if (body.materialsUsed !== undefined) updateData.materials = body.materialsUsed;
         if (body.status !== undefined) updateData.status = body.status;
+        if (body.rejectionNote !== undefined) updateData.rejectionNote = body.rejectionNote;
 
         const log = await prisma.dailyLog.update({
             where: { id },
@@ -30,6 +32,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
                 project: { select: { id: true, name: true } },
             },
         });
+
+        // Auto-notification on validation/rejection
+        if (body.status === "VALIDE" || body.status === "REJETE") {
+            const validatorName = session.user.name || "Un superviseur";
+            const isValidated = body.status === "VALIDE";
+
+            await createNotification({
+                userId: log.author.id,
+                title: isValidated ? "Journal validé ✓" : "Journal rejeté ✗",
+                message: isValidated
+                    ? `${validatorName} a validé votre journal du ${new Date(log.date).toLocaleDateString("fr-FR")} — ${log.project.name}`
+                    : `${validatorName} a rejeté votre journal du ${new Date(log.date).toLocaleDateString("fr-FR")} — ${log.project.name}${body.rejectionNote ? ` : "${body.rejectionNote}"` : ""}`,
+                type: "VALIDATION",
+                link: `/chef-equipe/daily-logs`,
+            });
+        }
 
         return NextResponse.json(log);
     } catch (error) {

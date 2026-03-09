@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { notifyAdminsAndSupervisor } from "@/lib/notifications";
 
 // GET /api/incidents
 export async function GET(req: NextRequest) {
@@ -71,6 +72,19 @@ export async function POST(req: NextRequest) {
                 reporter: { select: { id: true, firstName: true, lastName: true } },
                 project: { select: { id: true, name: true } },
             },
+        });
+
+        // Auto-notify admins and supervisor
+        const reporterName = `${incident.reporter.firstName} ${incident.reporter.lastName}`;
+        const severityLabel = severity === "CRITIQUE" ? "🔴 CRITIQUE" : severity === "HAUTE" ? "🟠 HAUTE" : severity || "MOYENNE";
+
+        await notifyAdminsAndSupervisor({
+            projectId,
+            title: `Nouvel incident [${severityLabel}]`,
+            message: `${reporterName} a signalé : "${title}" — ${incident.project.name}`,
+            type: "INCIDENT",
+            link: `/conducteur/incidents`,
+            excludeUserId: session.user.id,
         });
 
         return NextResponse.json(incident, { status: 201 });
