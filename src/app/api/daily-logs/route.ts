@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 // GET /api/daily-logs
 export async function GET(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) {
+    const user = await getAuthorizedUser();
+    if (!user) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -15,8 +15,8 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     if (projectId) where.projectId = projectId;
 
-    if (session.user.role === "CHEF_EQUIPE") {
-        where.authorId = session.user.id;
+    if (user.role === "CHEF_EQUIPE") {
+        where.authorId = user.id;
     }
 
     const logs = await prisma.dailyLog.findMany({
@@ -38,8 +38,8 @@ export async function GET(req: NextRequest) {
 
 // POST /api/daily-logs
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CHEF_EQUIPE", "CONDUCTEUR"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CHEF_EQUIPE", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
         const log = await prisma.dailyLog.create({
             data: {
                 projectId,
-                authorId: session.user.id,
+                authorId: user.id,
                 date: logDate,
                 weather: weather || null,
                 temperature: temperature ? parseFloat(temperature) : null,

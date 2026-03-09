@@ -79,7 +79,7 @@ export default function DailyLogsPage() {
         if (res.ok) setProjects(await res.json());
     }, []);
 
-    useEffect(() => { fetchLogs(); fetchProjects(); }, [fetchLogs, fetchProjects]);
+    useEffect(() => { (async () => { await Promise.all([fetchLogs(), fetchProjects()]); })(); }, [fetchLogs, fetchProjects]);
 
     const openCreateModal = () => {
         setEditingLog(null);
@@ -309,7 +309,7 @@ export default function DailyLogsPage() {
                                 <FileText className="w-5 h-5 text-primary" />
                                 <h2 className="text-lg font-semibold">{editingLog ? "Modifier le journal" : "Nouveau journal"}</h2>
                             </div>
-                            <button onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+                            <button onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-white" title="Fermer"><X className="w-5 h-5" /></button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -328,7 +328,7 @@ export default function DailyLogsPage() {
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium text-slate-400">Date *</label>
-                                    <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="input-field" required />
+                                    <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="input-field" required title="Date du journal" placeholder="Date" />
                                 </div>
                             </div>
 
@@ -379,7 +379,7 @@ export default function DailyLogsPage() {
                             {/* Photos Capture Section */}
                             {!editingLog && (
                                 <div className="space-y-4 pt-2">
-                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-slate-500 px-1">Photos du jour</label>
+                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2 px-1">Photos du jour</label>
 
                                     <PhotoCapture
                                         entityId="new"
@@ -438,7 +438,7 @@ export default function DailyLogsPage() {
                                 <h2 className="text-xl font-bold text-white">{previewLog.project.name}</h2>
                                 <p className="text-sm text-slate-400 mt-1">{formatDate(previewLog.date)} · Par {previewLog.author.firstName} {previewLog.author.lastName}</p>
                             </div>
-                            <button onClick={() => setPreviewLog(null)} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/5 transition-colors"><X className="w-5 h-5" /></button>
+                            <button onClick={() => setPreviewLog(null)} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/5 transition-colors" title="Fermer"><X className="w-5 h-5" /></button>
                         </div>
 
                         <div className="p-6 space-y-6">

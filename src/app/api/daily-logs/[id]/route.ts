@@ -24,6 +24,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (body.materialsUsed !== undefined) updateData.materials = body.materialsUsed;
         if (body.status !== undefined) updateData.status = body.status;
         if (body.rejectionNote !== undefined) updateData.rejectionNote = body.rejectionNote;
+        if (body.correctionNotes !== undefined) updateData.correctionNotes = body.correctionNotes;
 
         const log = await prisma.dailyLog.update({
             where: { id },

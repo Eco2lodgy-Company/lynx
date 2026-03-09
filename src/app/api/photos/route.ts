@@ -10,9 +10,16 @@ export async function GET(req: NextRequest) {
     const isClient = session.user.role === "CLIENT";
 
     // 1. Fetch report photos
+    // Req 5: Clients only see photos from validated daily logs or published reports
     const reportPhotos = await prisma.photo.findMany({
         where: isClient
-            ? { project: { clientId: session.user.id } }
+            ? { 
+                project: { clientId: session.user.id },
+                OR: [
+                    { dailyLog: { status: "VALIDE" } },
+                    { report: { status: "PUBLIE" } }
+                ]
+              }
             : undefined,
         include: {
             project: { select: { id: true, name: true } },

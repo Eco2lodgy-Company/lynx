@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 // GET /api/projects — Liste des projets
 export async function GET() {
-    const session = await auth();
-    if (!session?.user) {
+    const user = await getAuthorizedUser();
+    if (!user) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
-    const { role, id: userId } = session.user;
+    const { role, id: userId } = user;
 
     let where = {};
     if (role === "CONDUCTEUR") {
@@ -38,8 +38,8 @@ export async function GET() {
 
 // POST /api/projects — Créer un projet
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CONDUCTEUR"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
                 startDate: startDate ? new Date(startDate) : null,
                 estimatedEndDate: estimatedEndDate ? new Date(estimatedEndDate) : null,
                 budget: budget ? parseFloat(budget) : null,
-                supervisorId: supervisorId || session.user.id,
+                supervisorId: supervisorId || user.id,
                 clientId: clientId || null,
                 departmentId: departmentId || null,
             },

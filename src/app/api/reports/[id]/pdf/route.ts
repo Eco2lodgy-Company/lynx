@@ -45,13 +45,25 @@ export async function GET(
     }
 
     // Fetch related daily logs for the report period
-    let dailyLogs: Array<{
+    interface CommentWithAuthor {
+        content: string;
+        createdAt: Date;
+        author: { firstName: string; role: string };
+    }
+
+    interface DailyLogWithDetails {
         date: Date;
         summary: string | null;
         workCompleted: string | null;
         weather: string | null;
+        issues: string | null;
+        materials: string | null;
+        correctionNotes: string | null;
         author: { firstName: string; lastName: string };
-    }> = [];
+        comments: CommentWithAuthor[];
+    }
+
+    let dailyLogs: DailyLogWithDetails[] = [];
 
     if (report.periodStart && report.periodEnd) {
         dailyLogs = await prisma.dailyLog.findMany({
@@ -63,15 +75,15 @@ export async function GET(
                     lte: report.periodEnd,
                 },
             },
-            select: {
-                date: true,
-                summary: true,
-                workCompleted: true,
-                weather: true,
+            include: {
                 author: { select: { firstName: true, lastName: true } },
+                comments: {
+                    include: { author: { select: { firstName: true, role: true } } },
+                    orderBy: { createdAt: "asc" }
+                }
             },
             orderBy: { date: "asc" },
-        });
+        }) as DailyLogWithDetails[];
     }
 
     // Build PDF data payload for client-side rendering
@@ -104,7 +116,15 @@ export async function GET(
             summary: log.summary,
             workCompleted: log.workCompleted,
             weather: log.weather,
+            issues: log.issues,
+            materials: log.materials,
+            correctionNotes: log.correctionNotes,
             author: `${log.author.firstName} ${log.author.lastName}`,
+            comments: log.comments.map((c) => ({
+                content: c.content,
+                createdAt: c.createdAt.toISOString(),
+                author: `${c.author.firstName} (${c.author.role})`,
+            }))
         })),
         generatedAt: new Date().toISOString(),
         generatedBy: session.user.name || "Utilisateur",

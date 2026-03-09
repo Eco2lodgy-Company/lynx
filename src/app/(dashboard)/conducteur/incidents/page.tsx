@@ -199,7 +199,7 @@ export default function ConducteurIncidentsPage() {
                                     <p className="text-sm text-slate-400">{selectedIncident.project.name} · Signalé par {selectedIncident.reporter.firstName} {selectedIncident.reporter.lastName}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setSelectedIncident(null)} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/5 transition-colors"><X className="w-5 h-5" /></button>
+                            <button onClick={() => setSelectedIncident(null)} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/5 transition-colors" title="Fermer"><X className="w-5 h-5" /></button>
                         </div>
 
                         {/* Modal Body */}

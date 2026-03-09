@@ -56,15 +56,18 @@ export async function POST(req: NextRequest) {
         });
 
         if (existing) {
-            // Update existing
+            // Update existing record partially (Req 2: Matin et Soir)
+            const updateData: Record<string, any> = {
+                status: status || existing.status,
+                notes: notes || existing.notes,
+            };
+
+            if (checkIn) updateData.checkIn = new Date(checkIn);
+            if (checkOut) updateData.checkOut = new Date(checkOut);
+
             const updated = await prisma.attendance.update({
                 where: { id: existing.id },
-                data: {
-                    status,
-                    checkIn: checkIn ? new Date(checkIn) : null,
-                    checkOut: checkOut ? new Date(checkOut) : null,
-                    notes: notes || null,
-                },
+                data: updateData,
                 include: { user: { select: { id: true, firstName: true, lastName: true, role: true } } },
             });
             return NextResponse.json(updated);

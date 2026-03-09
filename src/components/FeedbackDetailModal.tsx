@@ -136,7 +136,7 @@ export default function FeedbackDetailModal({
                             <span className="text-xs text-slate-400">{feedback.project.name}</span>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-full hover:bg-white/5 text-slate-400 transition-colors">
+                    <button onClick={onClose} className="p-2 rounded-full hover:bg-white/5 text-slate-400 transition-colors" title="Fermer">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -252,6 +252,7 @@ export default function FeedbackDetailModal({
                                 accept="image/*"
                                 className="hidden"
                                 onChange={handlePhotoSelect}
+                                title="Ajouter une photo"
                             />
                             <textarea
                                 value={newReply}

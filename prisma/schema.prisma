@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -63,6 +63,13 @@ model User {
 
   // Audit trail
   auditLogs AuditLog[]
+
+  // Messagerie
+  conversations ConversationMember[]
+  messages      Message[]
+
+  // Demandes d'avance
+  advanceRequests AdvanceRequest[]
 
   @@map("users")
 }
@@ -156,6 +163,11 @@ model Project {
   attendances  Attendance[]
   projectTeams ProjectTeam[]
   feedbacks    Feedback[]
+
+  // Rapports consolidés (Phase 6)
+  deliveries   Delivery[]
+  advanceRequests AdvanceRequest[]
+  conversations Conversation[]
 
   @@map("projects")
 }
@@ -281,6 +293,7 @@ model DailyLog {
   materials     String?
   status        String   @default("BROUILLON") // BROUILLON, SOUMIS, VALIDE, REJETE
   rejectionNote String?
+  correctionNotes String? // Notes de contre-visite / contre-rapport (Phase 6)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -490,5 +503,92 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// =============================================================================
+// MESSAGERIE INTERNE (Phase 6 - Req 9)
+// =============================================================================
+
+model Conversation {
+  id        String   @id @default(cuid())
+  name      String?  // Optionnel (ex: "Chantier X - Général")
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members  ConversationMember[]
+  messages Message[]
+
+  @@map("conversations")
+}
+
+model ConversationMember {
+  id             String   @id @default(cuid())
+  joinedAt       DateTime @default(now())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_members")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  content        String
+  attachments    String?  // JSON array URLs (photos, vidéos)
+  createdAt      DateTime @default(now())
+  
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id])
+
+  @@map("messages")
+}
+
+// =============================================================================
+// DEMANDES DE FONDS / AVANCES (Phase 6 - Req 7)
+// =============================================================================
+
+model AdvanceRequest {
+  id        String   @id @default(cuid())
+  amount    Float
+  reason    String
+  status    String   @default("EN_ATTENTE") // EN_ATTENTE, VALIDE, REJETE
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("advance_requests")
+}
+
+// =============================================================================
+// PLANNING LIVRAISONS (Phase 6 - Req 8)
+// =============================================================================
+
+model Delivery {
+  id           String    @id @default(cuid())
+  item         String    // ex: "Béton C25/30"
+  quantity     String?   // ex: "12 m3"
+  supplier     String?
+  status       String    @default("A_VENIR") // A_VENIR, EN_ROUTE, LIVRE, ANNULE
+  plannedDate  DateTime
+  actualDate   DateTime?
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("deliveries")
 }
 

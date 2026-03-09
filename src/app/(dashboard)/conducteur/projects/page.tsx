@@ -18,6 +18,10 @@ import {
     CheckCircle2,
     Pause,
     Ban,
+    Camera,
+    MessageSquare,
+    Filter,
+    Trash2,
 } from "lucide-react";
 
 interface Department { id: string; name: string; }
@@ -100,10 +104,7 @@ export default function ConducteurProjectsPage() {
         }
     }, []);
 
-    useEffect(() => {
-        fetchProjects();
-        fetchMeta();
-    }, [fetchProjects, fetchMeta]);
+    useEffect(() => { (async () => { await Promise.all([fetchProjects(), fetchMeta()]); })(); }, [fetchProjects, fetchMeta]);
 
     const openCreateModal = () => {
         setEditingProject(null);
@@ -174,7 +175,7 @@ export default function ConducteurProjectsPage() {
                     <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher..." className="input-field pl-10" />
                 </div>
                 <div className="relative">
-                    <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="input-field pr-10 appearance-none min-w-[180px]">
+                    <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="input-field pr-10 appearance-none min-w-[180px]" title="Filtrer par statut">
                         <option value="">Tous les statuts</option>
                         {Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                     </select>
@@ -255,7 +256,7 @@ export default function ConducteurProjectsPage() {
                     <div className="bg-surface-dark border border-border-dark rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fade-in" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between p-6 border-b border-border-dark">
                             <div className="flex items-center gap-2"><FolderKanban className="w-5 h-5 text-primary" /><h2 className="text-lg font-semibold">{editingProject ? "Modifier" : "Nouveau projet"}</h2></div>
-                            <button onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+                            <button onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-white" title="Fermer"><X className="w-5 h-5" /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             {error && <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3"><p className="text-red-400 text-sm">{error}</p></div>}
@@ -271,6 +272,7 @@ export default function ConducteurProjectsPage() {
                                             onChange={(e) => setForm({ ...form, supervisorId: e.target.value })}
                                             className="input-field appearance-none"
                                             required
+                                            title="Sélectionner le conducteur"
                                         >
                                             <option value="">Sélectionner...</option>
                                             {conducteurs.map((u) => (
@@ -288,6 +290,7 @@ export default function ConducteurProjectsPage() {
                                             onChange={(e) => setForm({ ...form, clientId: e.target.value })}
                                             className="input-field appearance-none"
                                             required
+                                            title="Sélectionner le client"
                                         >
                                             <option value="">Sélectionner...</option>
                                             {clients.map((u) => (
@@ -301,12 +304,12 @@ export default function ConducteurProjectsPage() {
 
                             <div className="space-y-1"><label className="text-xs font-medium text-slate-400">Adresse du chantier</label><input type="text" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="input-field" placeholder="Ex: Lot 42, Cité Hydra, Alger" /></div>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1"><label className="text-xs font-medium text-slate-400">Statut</label><div className="relative"><select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="input-field appearance-none">{Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" /></div></div>
-                                <div className="space-y-1"><label className="text-xs font-medium text-slate-400">Priorité</label><div className="relative"><select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} className="input-field appearance-none">{Object.entries(PRIORITY_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" /></div></div>
+                                <div className="space-y-1"><label className="text-xs font-medium text-slate-400">Statut</label><div className="relative"><select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="input-field appearance-none" title="Sélectionner le statut">{Object.entries(STATUS_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" /></div></div>
+                                <div className="space-y-1"><label className="text-xs font-medium text-slate-400">Priorité</label><div className="relative"><select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} className="input-field appearance-none" title="Sélectionner la priorité">{Object.entries(PRIORITY_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" /></div></div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1"><label className="text-xs font-medium text-slate-400">Date début</label><input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="input-field" /></div>
-                                <div className="space-y-1"><label className="text-xs font-medium text-slate-400">Date fin estimée</label><input type="date" value={form.estimatedEndDate} onChange={(e) => setForm({ ...form, estimatedEndDate: e.target.value })} className="input-field" /></div>
+                                <div className="space-y-1"><label className="text-xs font-medium text-slate-400">Date début</label><input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="input-field" title="Date de début" placeholder="Date de début" /></div>
+                                <div className="space-y-1"><label className="text-xs font-medium text-slate-400">Date fin estimée</label><input type="date" value={form.estimatedEndDate} onChange={(e) => setForm({ ...form, estimatedEndDate: e.target.value })} className="input-field" title="Date de fin estimée" placeholder="Date de fin estimée" /></div>
                             </div>
                             <div className="space-y-1"><label className="text-xs font-medium text-slate-400">Budget du projet (€)</label><input type="number" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} className="input-field" placeholder="Ex: 150000" /></div>
                             <div className="flex justify-end gap-3 pt-4 border-t border-border-dark">

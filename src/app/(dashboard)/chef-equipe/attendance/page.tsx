@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import {
     Clock,
-    AlertTriangle,
     ChevronLeft,
     ChevronRight,
     Loader2,
@@ -65,7 +64,10 @@ export default function AttendancePage() {
     }, [date]);
 
     useEffect(() => {
-        fetchData();
+        const init = async () => {
+            await fetchData();
+        };
+        init();
     }, [fetchData]);
 
     const changeDate = (delta: number) => {
@@ -229,7 +231,7 @@ export default function AttendancePage() {
                 </button>
                 <div className="text-center">
                     <p className="font-semibold capitalize text-sm lg:text-base">{formatDate(date)}</p>
-                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="text-[10px] text-slate-500 bg-transparent border-none text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" />
+                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="text-[10px] text-slate-500 bg-transparent border-none text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" title="Sélectionner une date" />
                 </div>
                 <button onClick={() => changeDate(1)} className="p-2 hover:text-primary rounded-lg transition-colors" title="Jour suivant">
                     <ChevronRight className="w-5 h-5" />

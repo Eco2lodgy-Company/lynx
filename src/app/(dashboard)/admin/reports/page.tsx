@@ -315,11 +315,11 @@ export default function ReportsPage() {
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium text-slate-400">Début de période</label>
-                                    <input type="date" value={form.periodStart} onChange={(e) => setForm({ ...form, periodStart: e.target.value })} className="input-field" />
+                                    <input type="date" value={form.periodStart} onChange={(e) => setForm({ ...form, periodStart: e.target.value })} className="input-field" title="Début de période" />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium text-slate-400">Fin de période</label>
-                                    <input type="date" value={form.periodEnd} onChange={(e) => setForm({ ...form, periodEnd: e.target.value })} className="input-field" />
+                                    <input type="date" value={form.periodEnd} onChange={(e) => setForm({ ...form, periodEnd: e.target.value })} className="input-field" title="Fin de période" />
                                 </div>
                             </div>
                             <div className="space-y-1">

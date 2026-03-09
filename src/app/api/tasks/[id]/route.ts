@@ -21,7 +21,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             if (body.status === "TERMINE") updateData.completedAt = new Date();
         }
         if (body.priority !== undefined) updateData.priority = body.priority;
-        if (body.progress !== undefined) updateData.progress = parseFloat(body.progress);
+        
+        // Requirement 1: Only Conducteur/Admin can update progress
+        if (body.progress !== undefined) {
+            if (!["ADMIN", "CONDUCTEUR"].includes(session.user.role)) {
+                return NextResponse.json({ error: "Seul le conducteur peut noter l'avancement" }, { status: 403 });
+            }
+            updateData.progress = parseFloat(body.progress);
+        }
+
         if (body.startDate !== undefined) updateData.startDate = body.startDate ? new Date(body.startDate) : null;
         if (body.dueDate !== undefined) updateData.dueDate = body.dueDate ? new Date(body.dueDate) : null;
 

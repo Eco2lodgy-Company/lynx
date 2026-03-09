@@ -120,8 +120,10 @@ export default function ProjectsPage() {
     }, []);
 
     useEffect(() => {
-        fetchProjects();
-        fetchMeta();
+        const init = async () => {
+            await Promise.all([fetchProjects(), fetchMeta()]);
+        };
+        init();
     }, [fetchProjects, fetchMeta]);
 
     const openCreateModal = () => {
@@ -433,7 +435,11 @@ export default function ProjectsPage() {
                                     {editingProject ? "Modifier le projet" : "Nouveau projet"}
                                 </h2>
                             </div>
-                            <button onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-white">
+                            <button 
+                                onClick={() => setShowModal(false)} 
+                                className="p-1 text-slate-400 hover:text-white"
+                                title="Fermer la fenêtre"
+                            >
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -477,6 +483,7 @@ export default function ProjectsPage() {
                                             onChange={(e) => setForm({ ...form, supervisorId: e.target.value })}
                                             className="input-field appearance-none"
                                             required
+                                            title="Conducteur du projet"
                                         >
                                             <option value="">Sélectionner...</option>
                                             {conducteurs.map((u) => (
@@ -494,6 +501,7 @@ export default function ProjectsPage() {
                                             onChange={(e) => setForm({ ...form, clientId: e.target.value })}
                                             className="input-field appearance-none"
                                             required
+                                            title="Client du projet"
                                         >
                                             <option value="">Sélectionner...</option>
                                             {clients.map((u) => (
@@ -524,6 +532,7 @@ export default function ProjectsPage() {
                                             value={form.status}
                                             onChange={(e) => setForm({ ...form, status: e.target.value })}
                                             className="input-field appearance-none"
+                                            title="Statut du projet"
                                         >
                                             {Object.entries(STATUS_MAP).map(([key, val]) => (
                                                 <option key={key} value={key}>{val.label}</option>
@@ -539,6 +548,7 @@ export default function ProjectsPage() {
                                             value={form.priority}
                                             onChange={(e) => setForm({ ...form, priority: e.target.value })}
                                             className="input-field appearance-none"
+                                            title="Priorité du projet"
                                         >
                                             {Object.entries(PRIORITY_MAP).map(([key, val]) => (
                                                 <option key={key} value={key}>{val.label}</option>
@@ -557,6 +567,7 @@ export default function ProjectsPage() {
                                         value={form.startDate}
                                         onChange={(e) => setForm({ ...form, startDate: e.target.value })}
                                         className="input-field"
+                                        title="Date de début"
                                     />
                                 </div>
                                 <div className="space-y-1">
@@ -566,6 +577,7 @@ export default function ProjectsPage() {
                                         value={form.estimatedEndDate}
                                         onChange={(e) => setForm({ ...form, estimatedEndDate: e.target.value })}
                                         className="input-field"
+                                        title="Date de fin estimée"
                                     />
                                 </div>
                             </div>
@@ -588,6 +600,7 @@ export default function ProjectsPage() {
                                         value={form.departmentId}
                                         onChange={(e) => setForm({ ...form, departmentId: e.target.value })}
                                         className="input-field appearance-none"
+                                        title="Département responsable"
                                     >
                                         <option value="">Sélectionner...</option>
                                         {departments.map((d) => (

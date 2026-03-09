@@ -181,7 +181,7 @@ export default function ClientMessagesPage() {
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <Send className="w-5 h-5 text-primary" /> Nouvelle demande
                             </h2>
-                            <button onClick={() => setShowModal(false)} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/5 transition-colors">
+                            <button onClick={() => setShowModal(false)} className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/5 transition-colors" title="Fermer">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -217,7 +217,7 @@ export default function ClientMessagesPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2 px-1">Niveau d'urgence</label>
+                                <label className="block text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-2 px-1">Niveau d&apos;urgence</label>
                                 <div className="relative">
                                     <select
                                         value={form.priority}

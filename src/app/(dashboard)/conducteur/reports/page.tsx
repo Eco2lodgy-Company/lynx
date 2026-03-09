@@ -355,11 +355,11 @@ export default function ConducteurReportsPage() {
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-xs font-medium text-slate-400 mb-1.5">Début période</label>
-                                    <input type="date" value={form.periodStart} onChange={(e) => setForm({ ...form, periodStart: e.target.value })} className="input-field w-full" />
+                                    <input type="date" value={form.periodStart} onChange={(e) => setForm({ ...form, periodStart: e.target.value })} className="input-field w-full" title="Date de début" placeholder="Date de début" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-slate-400 mb-1.5">Fin période</label>
-                                    <input type="date" value={form.periodEnd} onChange={(e) => setForm({ ...form, periodEnd: e.target.value })} className="input-field w-full" />
+                                    <input type="date" value={form.periodEnd} onChange={(e) => setForm({ ...form, periodEnd: e.target.value })} className="input-field w-full" title="Date de fin" placeholder="Date de fin" />
                                 </div>
                             </div>
                             <div>
@@ -368,7 +368,7 @@ export default function ConducteurReportsPage() {
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-400 mb-1.5">Fichier PDF (optionnel)</label>
-                                <input type="file" accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} className="input-field w-full text-sm" />
+                                <input type="file" accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} className="input-field w-full text-sm" title="Fichier PDF" placeholder="Fichier PDF" />
                             </div>
                             {/* Photos Capture Section */}
                             <div className="pt-2">

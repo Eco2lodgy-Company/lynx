@@ -48,9 +48,11 @@ export default function PhotoCapture({ entityId, apiPath, photos, onPhotosChange
 
     // Initial check for camera support
     useEffect(() => {
-        if (typeof window !== "undefined" && (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)) {
-            setCameraSupport(false);
-        }
+        (async () => {
+            if (typeof window !== "undefined" && (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)) {
+                setCameraSupport(false);
+            }
+        })();
     }, []);
 
     // Get GPS position
@@ -90,9 +92,10 @@ export default function PhotoCapture({ entityId, apiPath, photos, onPhotosChange
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
             }
-        } catch (err: any) {
-            console.error("Camera error:", err);
-            setError(err.name === "NotAllowedError" ? "Accès à la caméra refusé." : "Impossible de démarrer la caméra.");
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Camera error:", error);
+            setError(error.name === "NotAllowedError" ? "Accès à la caméra refusé." : "Impossible de démarrer la caméra.");
             setShowCamera(false);
         }
     }, [getGPS]);
@@ -290,6 +293,7 @@ export default function PhotoCapture({ entityId, apiPath, photos, onPhotosChange
                         accept="image/*"
                         className="hidden"
                         onChange={handleFileSelect}
+                        title="Importer une photo"
                     />
                     <input
                         ref={cameraInputRef}
@@ -298,6 +302,7 @@ export default function PhotoCapture({ entityId, apiPath, photos, onPhotosChange
                         capture="environment"
                         className="hidden"
                         onChange={handleFileSelect}
+                        title="Prendre une photo"
                     />
                 </div>
             )}
@@ -512,6 +517,7 @@ export default function PhotoCapture({ entityId, apiPath, photos, onPhotosChange
                                         <button
                                             onClick={() => setEditingCaption(null)}
                                             className="btn-secondary text-xs px-3"
+                                            title="Annuler l'édition"
                                         >
                                             <X className="w-3 h-3" />
                                         </button>

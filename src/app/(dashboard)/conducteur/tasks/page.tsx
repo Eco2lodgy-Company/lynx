@@ -305,12 +305,12 @@ export default function ConducteurTasksPage() {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-medium text-slate-400 mb-1.5">Date début</label>
-                                    <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="input-field w-full" />
+                                    <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="input-field w-full" title="Date de début" placeholder="Date de début" />
                                 </div>
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-400 mb-1.5">Date d&apos;échéance</label>
-                                <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="input-field w-full" />
+                                <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="input-field w-full" title="Date d'échéance" placeholder="Date d'échéance" />
                             </div>
                         </div>
                         <div className="flex gap-3 p-5 pt-0">

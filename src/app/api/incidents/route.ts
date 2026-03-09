@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 import { notifyAdminsAndSupervisor } from "@/lib/notifications";
 import { logAudit, AuditActions } from "@/lib/audit";
 
 // GET /api/incidents
 export async function GET(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) {
+    const user = await getAuthorizedUser();
+    if (!user) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     if (projectId) where.projectId = projectId;
 
-    if (session.user.role === "CHEF_EQUIPE") {
-        where.reporterId = session.user.id;
+    if (user.role === "CHEF_EQUIPE") {
+        where.reporterId = user.id;
     }
 
     const incidents = await prisma.incident.findMany({
@@ -47,8 +47,8 @@ export async function GET(req: NextRequest) {
 
 // POST /api/incidents
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CHEF_EQUIPE", "CONDUCTEUR"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CHEF_EQUIPE", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         const incident = await prisma.incident.create({
             data: {
                 projectId,
-                reporterId: session.user.id,
+                reporterId: user.id,
                 title,
                 description: description || null,
                 severity: severity || "MOYENNE",
@@ -85,12 +85,12 @@ export async function POST(req: NextRequest) {
             message: `${reporterName} a signalé : "${title}" — ${incident.project.name}`,
             type: "INCIDENT",
             link: `/conducteur/incidents`,
-            excludeUserId: session.user.id,
+            excludeUserId: user.id,
         });
 
         // Audit trail
         await logAudit({
-            userId: session.user.id,
+            userId: user.id,
             action: AuditActions.CREATE_INCIDENT,
             entity: "Incident",
             entityId: incident.id,
