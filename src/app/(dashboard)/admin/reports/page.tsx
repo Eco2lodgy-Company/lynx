@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-    FileText, Plus, Search, Download, Trash2, Eye,
+    FileText, Plus, Search, Trash2, Eye,
     ChevronDown, CheckCircle2, Clock, FolderKanban, X, Loader2, ExternalLink, FileEdit, Camera,
 } from "lucide-react";
 import PhotoCapture, { type Photo } from "@/components/ReportPhotoCapture";
+import ReportPdfGenerator from "@/components/ReportPdfGenerator";
 
 interface ProjectRef { id: string; name: string }
 interface Report {
@@ -255,11 +256,7 @@ export default function ReportsPage() {
                                                         <CheckCircle2 className="w-4 h-4" />
                                                     </button>
                                                 )}
-                                                {r.pdfUrl && (
-                                                    <a href={r.pdfUrl} download className="p-1.5 text-slate-400 hover:text-primary rounded-lg transition-colors" title="Télécharger PDF">
-                                                        <Download className="w-4 h-4" />
-                                                    </a>
-                                                )}
+                                                <ReportPdfGenerator reportId={r.id} />
                                                 {deleteConfirm === r.id ? (
                                                     <div className="flex gap-1">
                                                         <button onClick={() => handleDelete(r.id)} className="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded">Oui</button>

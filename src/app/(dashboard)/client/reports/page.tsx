@@ -6,7 +6,6 @@ import {
     FileText,
     Search,
     Loader2,
-    Download,
     Eye,
     X,
     ChevronDown,
@@ -19,6 +18,7 @@ import {
     GalleryHorizontal,
     ZoomIn,
 } from "lucide-react";
+import ReportPdfGenerator from "@/components/ReportPdfGenerator";
 
 interface Photo {
     id: string;
@@ -208,15 +208,9 @@ export default function ClientReportsPage() {
                                     >
                                         <Eye className="w-3.5 h-3.5" /> Lire
                                     </button>
-                                    {r.pdfUrl && (
-                                        <a
-                                            href={r.pdfUrl}
-                                            download
-                                            className="flex-1 flex items-center justify-center gap-2 py-2 text-xs text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/5 rounded-lg transition-colors"
-                                        >
-                                            <Download className="w-3.5 h-3.5" /> PDF
-                                        </a>
-                                    )}
+                                    <div className="flex-1 flex justify-center py-1">
+                                        <ReportPdfGenerator reportId={r.id} />
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -234,11 +228,7 @@ export default function ClientReportsPage() {
                                 <p className="text-xs text-slate-400 mt-0.5">{preview.project.name} · {formatDate(preview.createdAt)}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                {preview.pdfUrl && (
-                                    <a href={preview.pdfUrl} download className="btn-secondary text-xs py-1.5">
-                                        <Download className="w-3.5 h-3.5" /> PDF
-                                    </a>
-                                )}
+                                <ReportPdfGenerator reportId={preview.id} />
                                 <button onClick={() => setPreview(null)} className="p-1 text-slate-400 hover:text-white" title="Fermer">
                                     <X className="w-4 h-4" />
                                 </button>
