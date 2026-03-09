@@ -17,6 +17,7 @@ import {
     Image,
     GalleryHorizontal,
     ZoomIn,
+    Download,
 } from "lucide-react";
 import ReportPdfGenerator from "@/components/ReportPdfGenerator";
 
