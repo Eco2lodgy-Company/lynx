@@ -2,18 +2,26 @@
 @import "tailwindcss";
 
 @theme {
-    --color-primary: #00b4ff;
-    --color-primary-hover: #0096d6;
-    --color-primary-light: rgba(0, 180, 255, 0.12);
-    --color-background-dark: #050a14;
-    --color-surface-dark: #0d1626;
-    --color-surface-dark-hover: #152136;
-    --color-border-dark: #1e2d45;
-    --color-navy-700: #112240;
-    --color-navy-800: #0a192f;
-    --color-navy-900: #020c1b;
-    --color-sky-400: #38bdf8;
-    --color-sky-500: #0ea5e9;
+    /* écoTech Brand Colors — Extracted from official logo */
+    --color-primary: #C8842A;         /* Warm amber-brown (main logo tone) */
+    --color-primary-hover: #A0671E;   /* Darker brown on hover */
+    --color-primary-light: rgba(200, 132, 42, 0.12);
+
+    --color-eco: #7A8000;             /* Olive green (the "é" in éco) */
+    --color-eco-light: rgba(122, 128, 0, 0.15);
+
+    --color-accent-brown: #6B2F10;    /* Deep dark brown (magnifying handle) */
+    --color-accent-sand: #D2A76A;     /* Light sand/beige tone */
+
+    --color-background-dark: #0F0C08; /* Very dark warm-brown background */
+    --color-surface-dark: #1A1410;    /* Card surface — warm dark */
+    --color-surface-dark-hover: #241C14;
+    --color-border-dark: #3D2E1A;     /* Warm border */
+
+    --color-navy-700: #2A1E0F;
+    --color-navy-800: #1A1208;
+    --color-navy-900: #0D0904;
+
     --font-family-display: "Outfit", "Inter", sans-serif;
 }
 
