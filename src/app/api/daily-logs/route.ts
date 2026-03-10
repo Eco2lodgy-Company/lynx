@@ -15,7 +15,11 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     if (projectId) where.projectId = projectId;
 
-    if (user.role === "CHEF_EQUIPE") {
+    // Req 5: Client only sees validated daily logs from their own projects
+    if (user.role === "CLIENT") {
+        where.status = "VALIDE";
+        where.project = { clientId: user.id };
+    } else if (user.role === "CHEF_EQUIPE") {
         where.authorId = user.id;
     }
 
