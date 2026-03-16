@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { userId, date, status, checkIn, checkOut, notes, latitude, longitude } = body;
+        const { userId, date, status, checkIn, checkOut, notes, latitude, longitude, projectId } = body;
 
         // Security check: Workers can only update their own record
         const targetUserId = userId || user.id;
