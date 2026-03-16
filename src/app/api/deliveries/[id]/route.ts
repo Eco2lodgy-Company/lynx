@@ -44,7 +44,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     }
 
     try {
-        await prisma.delivery.delete({ where: { id: params.id } });
+        const { id } = await params;
+        await prisma.delivery.delete({ where: { id } });
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error("Error deleting delivery:", error);
