@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
 
     // Auto-sync channels for projects the user is involved in
     try {
-        let userProjects = [];
+        let userProjects: { id: string }[] = [];
         if (user.role === "ADMIN") {
             userProjects = await prisma.project.findMany({ select: { id: true } });
         } else if (user.role === "CONDUCTEUR") {
