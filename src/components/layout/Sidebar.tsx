@@ -26,6 +26,8 @@ import {
     Image,
     Building2,
     Shield,
+    CircleDollarSign,
+    Truck,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -49,6 +51,9 @@ const navItemsByRole: Record<string, NavItem[]> = {
         { label: "Pointage", href: "/admin/attendance", icon: <Clock className="w-5 h-5" /> },
         { label: "Rapports", href: "/admin/reports", icon: <FileText className="w-5 h-5" /> },
         { label: "Demandes Clients", href: "/admin/feedbacks", icon: <MessageSquare className="w-5 h-5" /> },
+        { label: "Messages", href: "/admin/messages", icon: <MessageSquare className="w-5 h-5" /> },
+        { label: "Livraisons", href: "/admin/deliveries", icon: <Truck className="w-5 h-5" /> },
+        { label: "Fonds", href: "/admin/advance-requests", icon: <CircleDollarSign className="w-5 h-5" /> },
         { label: "Statistiques", href: "/admin/stats", icon: <BarChart3 className="w-5 h-5" /> },
         { label: "Planning", href: "/admin/planning", icon: <Calendar className="w-5 h-5" /> },
         { label: "Paramètres", href: "/admin/settings", icon: <Settings className="w-5 h-5" /> },
@@ -70,6 +75,9 @@ const navItemsByRole: Record<string, NavItem[]> = {
         { label: "Pointage", href: "/conducteur/attendance", icon: <Clock className="w-5 h-5" /> },
         { label: "Rapports", href: "/conducteur/reports", icon: <FileText className="w-5 h-5" /> },
         { label: "Demandes Clients", href: "/conducteur/feedbacks", icon: <MessageSquare className="w-5 h-5" /> },
+        { label: "Messages", href: "/conducteur/messages", icon: <MessageSquare className="w-5 h-5" /> },
+        { label: "Livraisons", href: "/conducteur/deliveries", icon: <Truck className="w-5 h-5" /> },
+        { label: "Fonds", href: "/conducteur/advance-requests", icon: <CircleDollarSign className="w-5 h-5" /> },
     ],
     CHEF_EQUIPE: [
         { label: "Tableau de bord", href: "/chef-equipe/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -77,6 +85,9 @@ const navItemsByRole: Record<string, NavItem[]> = {
         { label: "Journal", href: "/chef-equipe/daily-logs", icon: <ClipboardList className="w-5 h-5" /> },
         { label: "Tâches", href: "/chef-equipe/tasks", icon: <CheckSquare className="w-5 h-5" /> },
         { label: "Incidents", href: "/chef-equipe/incidents", icon: <AlertTriangle className="w-5 h-5" /> },
+        { label: "Messages", href: "/chef-equipe/messages", icon: <MessageSquare className="w-5 h-5" /> },
+        { label: "Livraisons", href: "/chef-equipe/deliveries", icon: <Truck className="w-5 h-5" /> },
+        { label: "Fonds", href: "/chef-equipe/advance-requests", icon: <CircleDollarSign className="w-5 h-5" /> },
     ],
     CLIENT: [
         { label: "Tableau de bord", href: "/client/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },

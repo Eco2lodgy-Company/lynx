@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) {
+    const user = await getAuthorizedUser();
+    if (!user) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 

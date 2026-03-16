@@ -11,13 +11,15 @@ export async function GET() {
 
     const { role, id: userId } = user;
 
-    let where = {};
+    let where: any = {};
     if (role === "CONDUCTEUR") {
         where = { supervisorId: userId };
     } else if (role === "CLIENT") {
         where = { clientId: userId };
     } else if (role === "CHEF_EQUIPE") {
         where = { projectTeams: { some: { team: { leaderId: userId } } } };
+    } else if (role === "OUVRIER") {
+        where = { projectTeams: { some: { team: { members: { some: { userId } } } } } };
     } else if (role !== "ADMIN") {
         return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }

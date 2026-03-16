@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 import { createNotification } from "@/lib/notifications";
 import { logAudit, AuditActions } from "@/lib/audit";
 
 // PUT /api/daily-logs/:id
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CHEF_EQUIPE", "CONDUCTEUR"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CHEF_EQUIPE", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -37,7 +37,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
         // Auto-notification on validation/rejection
         if (body.status === "VALIDE" || body.status === "REJETE") {
-            const validatorName = session.user.name || "Un superviseur";
+            const validatorName = (user as any).firstName || (user as any).name || user.email || "Un superviseur";
             const isValidated = body.status === "VALIDE";
 
             await createNotification({
@@ -52,7 +52,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
             // Audit trail
             await logAudit({
-                userId: session.user.id,
+                userId: user.id,
                 action: isValidated ? AuditActions.VALIDATE_LOG : AuditActions.REJECT_LOG,
                 entity: "DailyLog",
                 entityId: id,
@@ -73,8 +73,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/daily-logs/:id
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CHEF_EQUIPE"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CHEF_EQUIPE"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 

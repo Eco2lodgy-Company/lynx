@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -57,7 +57,10 @@ model User {
 
   // Réponses aux messages
   feedbackReplies FeedbackReply[]
-
+ 
+  // Planning & Visites
+  fieldVisits   FieldVisit[]
+ 
   // Pointages validés (pour Chef d'équipe)
   validatedAttendances Attendance[] @relation("AttendanceValidator")
 
@@ -167,8 +170,9 @@ model Project {
   // Rapports consolidés (Phase 6)
   deliveries   Delivery[]
   advanceRequests AdvanceRequest[]
+  fieldVisits  FieldVisit[]
   conversations Conversation[]
-
+ 
   @@map("projects")
 }
 
@@ -592,3 +596,24 @@ model Delivery {
   @@map("deliveries")
 }
 
+
+// =============================================================================
+// PLANNING & VISITES (Phase 29)
+// =============================================================================
+
+model FieldVisit {
+  id          String    @id @default(cuid())
+  purpose     String    // VALIDATION_RAPPORT, CONSTAT_INCIDENT, SUIVI_CHANTIER, AUTRE
+  notes       String?
+  plannedAt   DateTime
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  visitorId   String
+  visitor     User      @relation(fields: [visitorId], references: [id])
+
+  @@map("field_visits")
+}

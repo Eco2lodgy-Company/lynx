@@ -1,33 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 import bcrypt from "bcryptjs";
 
 // GET /api/users/:id
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
     const { id } = await params;
-    const user = await prisma.user.findUnique({
+    const targetUser = await prisma.user.findUnique({
         where: { id },
         include: { department: true, teamMembership: { include: { team: true } } },
     });
 
-    if (!user) {
+    if (!targetUser) {
         return NextResponse.json({ error: "Utilisateur non trouvé" }, { status: 404 });
     }
 
-    const { password: _pw, ...safeUser } = user;
+    const { password: _pw, ...safeUser } = targetUser;
     return NextResponse.json(safeUser);
 }
 
 // PUT /api/users/:id
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -62,15 +62,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/users/:id
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
     try {
         const { id } = await params;
 
-        if (id === session.user.id) {
+        if (id === user.id) {
             return NextResponse.json({ error: "Impossible de supprimer votre propre compte" }, { status: 400 });
         }
 

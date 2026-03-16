@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 // GET /api/messages?conversationId=...
 export async function GET(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+
+    if (user.role === "OUVRIER") {
+        return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
 
     const { searchParams } = new URL(req.url);
     const conversationId = searchParams.get("conversationId");
@@ -16,10 +20,10 @@ export async function GET(req: NextRequest) {
 
     // Verify membership
     const membership = await prisma.conversationMember.findUnique({
-        where: { conversationId_userId: { conversationId, userId: session.user.id } }
+        where: { conversationId_userId: { conversationId, userId: user.id } }
     });
 
-    if (!membership && session.user.role !== "ADMIN") {
+    if (!membership && user.role !== "ADMIN") {
         return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
@@ -37,8 +41,12 @@ export async function GET(req: NextRequest) {
 
 // POST /api/messages (Req 9: Envoi de message avec fichiers/photos)
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+
+    if (user.role === "OUVRIER") {
+        return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
 
     try {
         const { conversationId, content, attachments } = await req.json();
@@ -49,10 +57,10 @@ export async function POST(req: NextRequest) {
 
         // Verify membership
         const membership = await prisma.conversationMember.findUnique({
-            where: { conversationId_userId: { conversationId, userId: session.user.id } }
+            where: { conversationId_userId: { conversationId, userId: user.id } }
         });
 
-        if (!membership && session.user.role !== "ADMIN") {
+        if (!membership && user.role !== "ADMIN") {
             return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
         }
 
@@ -61,7 +69,7 @@ export async function POST(req: NextRequest) {
                 conversationId,
                 content: content?.trim() || "",
                 attachments: attachments ? JSON.stringify(attachments) : null,
-                authorId: session.user.id
+                authorId: user.id
             },
             include: {
                 author: { select: { id: true, firstName: true, lastName: true, role: true } }

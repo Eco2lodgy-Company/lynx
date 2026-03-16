@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 // GET /api/attendance — Liste des pointages
 export async function GET(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) {
-        return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    const user = await getAuthorizedUser();
+    if (!user) {
+        return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -16,13 +16,19 @@ export async function GET(req: NextRequest) {
     const startOfDay = new Date(`${todayStr}T00:00:00.000Z`);
     const endOfDay = new Date(`${todayStr}T23:59:59.999Z`);
 
+    // Worker only sees their own record
+    const where: { date: { gte: Date; lt: Date }; userId?: string } = {
+        date: { gte: startOfDay, lt: endOfDay },
+    };
+    if (user.role === "OUVRIER") {
+        where.userId = user.id;
+    }
+
     const attendance = await prisma.attendance.findMany({
-        where: {
-            date: { gte: startOfDay, lt: endOfDay },
-        },
+        where,
         include: {
             user: {
-                select: { id: true, firstName: true, lastName: true, role: true, department: true },
+                select: { id: true, firstName: true, lastName: true, role: true },
             },
         },
         orderBy: { createdAt: "desc" },
@@ -31,35 +37,40 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(attendance);
 }
 
-// POST /api/attendance — Créer un pointage
+// POST /api/attendance — Créer ou mettre à jour un pointage
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CHEF_EQUIPE"].includes(session.user.role)) {
-        return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
-    }
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
     try {
         const body = await req.json();
-        const { userId, date, status, checkIn, checkOut, notes } = body;
+        const { userId, date, status, checkIn, checkOut, notes, latitude, longitude } = body;
 
-        if (!userId || !date || !status) {
-            return NextResponse.json({ error: "Champs requis manquants" }, { status: 400 });
+        // Security check: Workers can only update their own record
+        const targetUserId = userId || user.id;
+        if (user.role === "OUVRIER" && targetUserId !== user.id) {
+            return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
         }
 
-        const dateObj = new Date(date);
+        const dateObj = new Date(date || new Date());
         const dateStr = dateObj.toISOString().split("T")[0];
         const startOfDay = new Date(`${dateStr}T00:00:00.000Z`);
 
         // Check duplicate
         const existing = await prisma.attendance.findFirst({
-            where: { userId, date: startOfDay },
+            where: { userId: targetUserId, date: startOfDay },
         });
 
+        // Workers cannot force status
+        const finalStatus = user.role === "OUVRIER" ? (existing?.status || "EN_ATTENTE") : (status || "VALIDE");
+
         if (existing) {
-            // Update existing record partially (Req 2: Matin et Soir)
-            const updateData: Record<string, any> = {
-                status: status || existing.status,
+            const updateData: any = {
+                status: finalStatus,
                 notes: notes || existing.notes,
+                latitude: latitude !== undefined ? latitude : existing.latitude,
+                longitude: longitude !== undefined ? longitude : existing.longitude,
+                projectId: projectId || existing.projectId,
             };
 
             if (checkIn) updateData.checkIn = new Date(checkIn);
@@ -68,26 +79,35 @@ export async function POST(req: NextRequest) {
             const updated = await prisma.attendance.update({
                 where: { id: existing.id },
                 data: updateData,
-                include: { user: { select: { id: true, firstName: true, lastName: true, role: true } } },
+                include: { 
+                    user: { select: { id: true, firstName: true, lastName: true, role: true } },
+                    project: { select: { name: true } }
+                },
             });
             return NextResponse.json(updated);
         }
 
         const attendance = await prisma.attendance.create({
             data: {
-                userId,
+                userId: targetUserId,
                 date: startOfDay,
-                status,
+                status: finalStatus,
                 checkIn: checkIn ? new Date(checkIn) : null,
                 checkOut: checkOut ? new Date(checkOut) : null,
                 notes: notes || null,
+                latitude: latitude || null,
+                longitude: longitude || null,
+                projectId: projectId || null,
             },
-            include: { user: { select: { id: true, firstName: true, lastName: true, role: true } } },
+            include: { 
+                user: { select: { id: true, firstName: true, lastName: true, role: true } },
+                project: { select: { name: true } }
+            },
         });
 
         return NextResponse.json(attendance, { status: 201 });
     } catch (error) {
         console.error("Error creating attendance:", error);
-        return NextResponse.json({ error: "Erreur lors de la création" }, { status: 500 });
+        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
     }
 }

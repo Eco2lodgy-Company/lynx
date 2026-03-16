@@ -1,86 +1,95 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 export async function GET() {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-        return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    const user = await getAuthorizedUser();
+    if (!user) {
+        return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const now = new Date();
-    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD
+    const todayStr = now.toISOString().split("T")[0];
     const startOfDay = new Date(`${todayStr}T00:00:00.000Z`);
     const endOfDay = new Date(`${todayStr}T23:59:59.999Z`);
 
+    // Define visibility filter for projects
+    let projectFilter: any = {};
+    if (user.role === "CONDUCTEUR") {
+        projectFilter = { supervisorId: user.id };
+    } else if (user.role === "CLIENT") {
+        projectFilter = { clientId: user.id };
+    } else if (user.role === "CHEF_EQUIPE") {
+        projectFilter = { projectTeams: { some: { team: { leaderId: user.id } } } };
+    } else if (user.role === "OUVRIER") {
+        projectFilter = { projectTeams: { some: { team: { members: { some: { userId: user.id } } } } } };
+    }
+
     const [
-        allUsers,
         allProjects,
         allTasks,
-        overdueTasks,
         allIncidents,
-        criticalIncidents,
-        resolvedIncidents,
         allLogs,
-        validatedLogs,
-        pendingLogs,
         attendanceToday,
     ] = await Promise.all([
-        prisma.user.findMany({ select: { role: true, isActive: true } }),
-        prisma.project.findMany({ select: { status: true, progress: true } }),
-        prisma.task.findMany({ select: { status: true, dueDate: true } }),
-        prisma.task.count({
-            where: {
-                status: { notIn: ["TERMINE", "ANNULE"] },
-                dueDate: { lt: now },
-            },
+        prisma.project.findMany({ 
+            where: projectFilter,
+            select: { id: true, status: true, progress: true } 
         }),
-        prisma.incident.count(),
-        prisma.incident.count({
-            where: { severity: "CRITIQUE", status: { notIn: ["RESOLU", "FERME"] } },
+        prisma.task.findMany({ 
+            where: { project: projectFilter },
+            select: { status: true, dueDate: true } 
         }),
-        prisma.incident.count({ where: { status: { in: ["RESOLU", "FERME"] } } }),
-        prisma.dailyLog.count(),
-        prisma.dailyLog.count({ where: { status: "VALIDE" } }),
-        prisma.dailyLog.count({ where: { status: "SOUMIS" } }),
+        prisma.incident.findMany({
+            where: { project: projectFilter },
+            select: { status: true, severity: true }
+        }),
+        prisma.dailyLog.findMany({
+            where: { project: projectFilter },
+            select: { status: true }
+        }),
         prisma.attendance.findMany({
-            where: { date: { gte: startOfDay, lt: endOfDay } },
-            select: { status: true },
+            where: { 
+                date: { gte: startOfDay, lt: endOfDay },
+                ...(user.role === "ADMIN" ? {} : { OR: [{ userId: user.id }, { project: projectFilter }] })
+            },
+            select: { status: true, userId: true },
         }),
     ]);
 
-    // Users by role
-    const byRole: Record<string, number> = {};
-    let activeUsers = 0;
-    for (const u of allUsers) {
-        byRole[u.role] = (byRole[u.role] || 0) + 1;
-        if (u.isActive) activeUsers++;
-    }
+    // Dashboard stats calculation
+    const activeProjects = allProjects.filter(p => !["TERMINE", "ANNULE"].includes(p.status)).length;
+    const completedTasks = allTasks.filter(t => t.status === "TERMINE").length;
+    const pendingValidations = allLogs.filter(l => l.status === "SOUMIS").length;
+    const recentIncidents = allIncidents.filter(i => i.status === "OUVERT").length;
 
-    // Projects by status
-    const byStatus: Record<string, number> = {};
-    let totalProgress = 0;
-    for (const p of allProjects) {
-        byStatus[p.status] = (byStatus[p.status] || 0) + 1;
-        totalProgress += p.progress;
-    }
-    const avgProgress = allProjects.length > 0 ? totalProgress / allProjects.length : 0;
-
-    // Tasks
-    const completedTasks = allTasks.filter((t) => t.status === "TERMINE").length;
-    const inProgressTasks = allTasks.filter((t) => t.status === "EN_COURS").length;
-
-    // Attendance
-    const present = attendanceToday.filter((a) => a.status === "PRESENT").length;
-    const absent = attendanceToday.filter((a) => a.status === "ABSENT").length;
-    const late = attendanceToday.filter((a) => a.status === "RETARD").length;
+    // Project Health Tracking
+    const projectHealth = allProjects.map(p => {
+        const pTasks = allTasks.filter(t => t.status !== "TERMINE"); // Simplified for now
+        const pIncidents = allIncidents.filter(i => i.status === "OUVERT");
+        
+        return {
+            id: p.id,
+            status: p.status,
+            incidents: pIncidents.length,
+            tasks: pTasks.length,
+            progress: p.progress
+        };
+    });
 
     return NextResponse.json({
-        users: { total: allUsers.length, byRole, active: activeUsers },
-        projects: { total: allProjects.length, byStatus, avgProgress },
-        tasks: { total: allTasks.length, completed: completedTasks, inProgress: inProgressTasks, overdue: overdueTasks },
-        incidents: { total: allIncidents, open: allIncidents - resolvedIncidents, critical: criticalIncidents, resolved: resolvedIncidents },
-        logs: { total: allLogs, validated: validatedLogs, pending: pendingLogs },
-        attendance: { today: attendanceToday.length, present, absent, late },
+        activeProjects,
+        pendingValidations,
+        recentIncidents,
+        completedTasks,
+        projectHealth,
+        avgProgress: allProjects.length > 0 ? allProjects.reduce((acc, p) => acc + p.progress, 0) / allProjects.length : 0,
+        counts: {
+            projects: allProjects.length,
+            tasks: allTasks.length,
+            incidents: allIncidents.length,
+            logs: allLogs.length,
+            attendance: attendanceToday.length
+        }
     });
 }

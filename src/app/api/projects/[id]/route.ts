@@ -1,15 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 // GET /api/projects/:id
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user) {
-        return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    const user = await getAuthorizedUser();
+    if (!user) {
+        return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const { id } = await params;
+
+    // Check visibility/authorization
+    if (user.role !== "ADMIN") {
+        const isAuthorized = await prisma.project.findFirst({
+            where: {
+                id,
+                OR: [
+                    { supervisorId: user.id },
+                    { clientId: user.id },
+                    { projectTeams: { some: { team: { leaderId: user.id } } } },
+                    { projectTeams: { some: { team: { members: { some: { userId: user.id } } } } } }
+                ]
+            }
+        });
+
+        if (!isAuthorized) {
+            return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+        }
+    }
+
     const project = await prisma.project.findUnique({
         where: { id },
         include: {
@@ -32,8 +52,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // PUT /api/projects/:id
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CONDUCTEUR"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -77,8 +97,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/projects/:id
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
+    const user = await getAuthorizedUser();
+    if (!user || user.role !== "ADMIN") {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 

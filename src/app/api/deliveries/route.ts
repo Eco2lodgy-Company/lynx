@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 // GET /api/deliveries
 export async function GET(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get("projectId");
@@ -13,12 +13,19 @@ export async function GET(req: NextRequest) {
     const where: any = {};
     if (projectId) where.projectId = projectId;
 
-    if (session.user.role === "CONDUCTEUR") {
-        where.project = { supervisorId: session.user.id };
-    } else if (session.user.role === "CHEF_EQUIPE") {
-        // Chef d'équipe sees deliveries for their projects
+    if (user.role === "CONDUCTEUR") {
+        where.project = { supervisorId: user.id };
+    } else if (user.role === "CHEF_EQUIPE" || user.role === "OUVRIER") {
+        // Users see deliveries for their assigned projects
         const teams = await prisma.projectTeam.findMany({
-            where: { team: { leaderId: session.user.id } },
+            where: { 
+                team: { 
+                    OR: [
+                        { leaderId: user.id },
+                        { members: { some: { userId: user.id } } }
+                    ]
+                } 
+            },
             select: { projectId: true }
         });
         where.projectId = { in: teams.map(t => t.projectId) };
@@ -37,8 +44,8 @@ export async function GET(req: NextRequest) {
 
 // POST /api/deliveries (Req 8)
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CONDUCTEUR"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR", "CHEF_EQUIPE"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -57,7 +64,8 @@ export async function POST(req: NextRequest) {
                 quantity: quantity || null,
                 supplier: supplier || null,
                 plannedDate: new Date(plannedDate),
-                notes: notes || null
+                notes: notes || null,
+                status: user.role === "CHEF_EQUIPE" ? "URGENT" : "A_VENIR" // All Chef requests are treated as urgent signals
             },
             include: {
                 project: { select: { name: true } }

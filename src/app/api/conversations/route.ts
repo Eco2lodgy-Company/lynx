@@ -1,15 +1,120 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
+
+// Helper to ensure mandatory channels exist for a project
+async function syncProjectChannels(projectId: string) {
+    const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+            supervisor: true,
+            client: true,
+            projectTeams: { include: { team: { include: { leader: true } } } }
+        }
+    });
+
+    if (!project) return;
+
+    const admins = await prisma.user.findMany({ where: { role: "ADMIN", isActive: true } });
+    const adminIds = admins.map(a => a.id);
+    
+    // 1. Canal Interne (Chef + Conducteur + Admin)
+    const internalMemberIds = new Set([...adminIds]);
+    if (project.supervisorId) internalMemberIds.add(project.supervisorId);
+    project.projectTeams.forEach(pt => {
+        if (pt.team.leaderId) internalMemberIds.add(pt.team.leaderId);
+    });
+
+    const internalName = `Interne - ${project.name}`;
+    let internalConv = await prisma.conversation.findFirst({
+        where: { projectId, name: internalName }
+    });
+
+    if (!internalConv) {
+        internalConv = await prisma.conversation.create({
+            data: {
+                name: internalName,
+                projectId,
+                members: { create: Array.from(internalMemberIds).map(uid => ({ userId: uid })) }
+            }
+        });
+    } else {
+        // Sync members
+        for (const uid of internalMemberIds) {
+            await prisma.conversationMember.upsert({
+                where: { conversationId_userId: { conversationId: internalConv.id, userId: uid } },
+                create: { conversationId: internalConv.id, userId: uid },
+                update: {}
+            });
+        }
+    }
+
+    // 2. Canal Client (Client + Conducteur + Admin)
+    if (project.clientId) {
+        const clientMemberIds = new Set([...adminIds, project.clientId]);
+        if (project.supervisorId) clientMemberIds.add(project.supervisorId);
+
+        const clientName = `Client - ${project.name}`;
+        let clientConv = await prisma.conversation.findFirst({
+            where: { projectId, name: clientName }
+        });
+
+        if (!clientConv) {
+            await prisma.conversation.create({
+                data: {
+                    name: clientName,
+                    projectId,
+                    members: { create: Array.from(clientMemberIds).map(uid => ({ userId: uid })) }
+                }
+            });
+        } else {
+            // Sync members
+            for (const uid of clientMemberIds) {
+                await prisma.conversationMember.upsert({
+                    where: { conversationId_userId: { conversationId: clientConv.id, userId: uid } },
+                    create: { conversationId: clientConv.id, userId: uid },
+                    update: {}
+                });
+            }
+        }
+    }
+}
 
 // GET /api/conversations
 export async function GET(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+
+    if (user.role === "OUVRIER") {
+        return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
+
+    // Auto-sync channels for projects the user is involved in
+    try {
+        let userProjects = [];
+        if (user.role === "ADMIN") {
+            userProjects = await prisma.project.findMany({ select: { id: true } });
+        } else if (user.role === "CONDUCTEUR") {
+            userProjects = await prisma.project.findMany({ where: { supervisorId: user.id }, select: { id: true } });
+        } else if (user.role === "CLIENT") {
+            userProjects = await prisma.project.findMany({ where: { clientId: user.id }, select: { id: true } });
+        } else if (user.role === "CHEF_EQUIPE") {
+            userProjects = await prisma.project.findMany({ 
+                where: { projectTeams: { some: { team: { leaderId: user.id } } } },
+                select: { id: true } 
+            });
+        }
+
+        for (const p of userProjects) {
+            await syncProjectChannels(p.id);
+        }
+    } catch (e) {
+        console.error("Sync error:", e);
+    }
 
     const conversations = await prisma.conversation.findMany({
         where: {
-            members: { some: { userId: session.user.id } }
+            members: { some: { userId: user.id } }
         },
         include: {
             project: { select: { id: true, name: true } },
@@ -19,7 +124,7 @@ export async function GET(req: NextRequest) {
             messages: {
                 orderBy: { createdAt: "desc" },
                 take: 1,
-                include: { author: { select: { firstName: true } } }
+                include: { author: { select: { id: true, firstName: true } } }
             }
         },
         orderBy: { updatedAt: "desc" }
@@ -28,16 +133,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(conversations);
 }
 
-// POST /api/conversations (Créer un canal de projet ou discussion directe)
+// POST /api/conversations
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+
+    if (user.role === "OUVRIER") {
+        return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
 
     try {
         const { name, projectId, participantIds } = await req.json();
         
-        // Ensure the current user is included
-        const uniqueParticipants = Array.from(new Set([...(participantIds || []), session.user.id]));
+        if (projectId) {
+            await syncProjectChannels(projectId);
+            // If it's a project channel creation request, we might already have it or just synced it.
+            // Return one of the mandatory ones if that's what was requested?
+            // Actually, for now, let's just proceed with custom group creation if needed, 
+            // but the auto-sync handles the mandatory ones.
+        }
+
+        const uniqueParticipants = Array.from(new Set([...(participantIds || []), user.id]));
 
         const conversation = await prisma.conversation.create({
             data: {

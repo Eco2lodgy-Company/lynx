@@ -11,6 +11,23 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
+    // --- Cleanup Logic (Phase 27) ---
+    // Supprimer les incidents clos depuis plus de 14 jours
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    try {
+        await prisma.incident.deleteMany({
+            where: {
+                status: { in: ["RESOLU", "FERME"] },
+                resolvedAt: { lt: fourteenDaysAgo }
+            }
+        });
+    } catch (e) {
+        console.error("Incident cleanup error:", e);
+    }
+    // --------------------------------
+
     const { searchParams } = new URL(req.url);
     const projectId = searchParams.get("projectId");
 
@@ -54,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { projectId, title, description, severity, location } = body;
+        const { projectId, title, description, severity, location, photoUrls } = body;
 
         if (!projectId || !title) {
             return NextResponse.json({ error: "Projet et titre requis" }, { status: 400 });
@@ -68,10 +85,18 @@ export async function POST(req: NextRequest) {
                 description: description || null,
                 severity: severity || "MOYENNE",
                 location: location || null,
+                photos: photoUrls && photoUrls.length > 0 ? {
+                    create: photoUrls.map((url: string) => ({
+                        url,
+                        projectId,
+                        uploadedById: user.id
+                    }))
+                } : undefined
             },
             include: {
                 reporter: { select: { id: true, firstName: true, lastName: true } },
                 project: { select: { id: true, name: true } },
+                photos: true
             },
         });
 

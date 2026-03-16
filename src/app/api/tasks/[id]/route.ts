@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 // PUT /api/tasks/:id
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user) {
-        return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+    const user = await getAuthorizedUser();
+    if (!user) {
+        return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     try {
@@ -17,6 +17,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (body.title !== undefined) updateData.title = body.title;
         if (body.description !== undefined) updateData.description = body.description;
         if (body.status !== undefined) {
+            if (!["ADMIN", "CONDUCTEUR"].includes(user.role)) {
+                return NextResponse.json({ error: "Seul le conducteur peut changer le statut d'une tâche" }, { status: 403 });
+            }
             updateData.status = body.status;
             if (body.status === "TERMINE") updateData.completedAt = new Date();
         }
@@ -24,7 +27,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         
         // Requirement 1: Only Conducteur/Admin can update progress
         if (body.progress !== undefined) {
-            if (!["ADMIN", "CONDUCTEUR"].includes(session.user.role)) {
+            if (!["ADMIN", "CONDUCTEUR"].includes(user.role)) {
                 return NextResponse.json({ error: "Seul le conducteur peut noter l'avancement" }, { status: 403 });
             }
             updateData.progress = parseFloat(body.progress);
@@ -53,8 +56,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/tasks/:id
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CONDUCTEUR"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 

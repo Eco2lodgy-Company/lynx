@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 // GET /api/tasks
 export async function GET(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) {
+    const user = await getAuthorizedUser();
+    if (!user) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -15,15 +15,8 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     if (projectId) where.projectId = projectId;
 
-    if (session.user.role === "OUVRIER") {
-        where.assignments = { some: { userId: session.user.id } };
-    } else if (session.user.role === "CHEF_EQUIPE") {
-        // Chef sees tasks on projects where they lead a team
-        const teams = await prisma.projectTeam.findMany({
-            where: { team: { leaderId: session.user.id } },
-            select: { projectId: true },
-        });
-        where.projectId = { in: teams.map((t) => t.projectId) };
+    if (user.role === "OUVRIER" || user.role === "CHEF_EQUIPE") {
+        where.assignments = { some: { userId: user.id } };
     }
 
     const tasks = await prisma.task.findMany({
@@ -45,8 +38,8 @@ export async function GET(req: NextRequest) {
 
 // POST /api/tasks
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CONDUCTEUR", "CHEF_EQUIPE"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR", "CHEF_EQUIPE"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 

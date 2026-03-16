@@ -1,26 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 export async function GET(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
-    const { searchParams } = new URL(req.url);
-    const isClient = session.user.role === "CLIENT";
+    const isClient = user.role === "CLIENT";
+    const isAdmin = user.role === "ADMIN";
+    const isConducteur = user.role === "CONDUCTEUR";
+
+    let photoWhere: any = {};
+    let feedbackWhere: any = {};
+
+    if (isClient) {
+        photoWhere = { 
+            project: { clientId: user.id },
+            OR: [
+                { dailyLog: { status: "VALIDE" } },
+                { report: { status: "PUBLIE" } }
+            ]
+        };
+        feedbackWhere = {
+            imageUrl: { not: null },
+            feedback: { project: { clientId: user.id } }
+        };
+    } else if (isConducteur) {
+        // Conducteur sees photos from projects they supervise
+        const projectFilter = { supervisorId: user.id };
+        photoWhere = { project: projectFilter };
+        feedbackWhere = {
+            imageUrl: { not: null },
+            feedback: { project: projectFilter }
+        };
+    } else if (isAdmin) {
+        // Admin sees everything
+        photoWhere = {};
+        feedbackWhere = { imageUrl: { not: null } };
+    } else {
+        // Other roles (Workers) see photos from their assigned projects
+        const workerFilter = {
+            OR: [
+                { projectTeams: { some: { team: { leaderId: user.id } } } },
+                { projectTeams: { some: { team: { members: { some: { userId: user.id } } } } } }
+            ]
+        };
+        photoWhere = { project: workerFilter };
+        feedbackWhere = {
+            imageUrl: { not: null },
+            feedback: { project: workerFilter }
+        };
+    }
 
     // 1. Fetch report photos
-    // Req 5: Clients only see photos from validated daily logs or published reports
     const reportPhotos = await prisma.photo.findMany({
-        where: isClient
-            ? { 
-                project: { clientId: session.user.id },
-                OR: [
-                    { dailyLog: { status: "VALIDE" } },
-                    { report: { status: "PUBLIE" } }
-                ]
-              }
-            : undefined,
+        where: photoWhere,
         include: {
             project: { select: { id: true, name: true } },
         },
@@ -29,12 +63,7 @@ export async function GET(req: NextRequest) {
 
     // 2. Fetch feedback reply photos
     const feedbackPhotos = await prisma.feedbackReply.findMany({
-        where: {
-            imageUrl: { not: null },
-            feedback: isClient
-                ? { project: { clientId: session.user.id } }
-                : undefined,
-        },
+        where: feedbackWhere,
         include: {
             feedback: {
                 include: {
@@ -77,8 +106,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
     try {
         const { url, caption, projectId, latitude, longitude, takenAt } = await req.json();
@@ -94,7 +123,7 @@ export async function POST(req: NextRequest) {
                 latitude: latitude ?? null,
                 longitude: longitude ?? null,
                 takenAt: takenAt ? new Date(takenAt) : undefined,
-                uploadedById: session.user.id,
+                uploadedById: user.id,
             },
             include: { project: { select: { id: true, name: true } } },
         });
