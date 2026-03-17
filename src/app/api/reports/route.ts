@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 export async function GET() {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
     // Filtrage par rôle
     const where: Record<string, unknown> = {};
-    if (session.user.role === "CLIENT") {
-        where.project = { clientId: session.user.id };
-    } else if (session.user.role === "CONDUCTEUR") {
-        where.project = { supervisorId: session.user.id };
+    if (user.role === "CLIENT") {
+        where.project = { clientId: user.id };
+    } else if (user.role === "CONDUCTEUR") {
+        where.project = { supervisorId: user.id };
     }
     // ADMIN : pas de filtre, voit tout
 
@@ -31,8 +31,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CONDUCTEUR"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 

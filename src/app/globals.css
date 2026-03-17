@@ -2,25 +2,33 @@
 @import "tailwindcss";
 
 @theme {
-    /* écoTech Brand Colors — Extracted from official logo */
-    --color-primary: #C8842A;         /* Warm amber-brown (main logo tone) */
+    /* LYNX Brand Colors — Light Theme */
+    --color-primary: #C8842A;         /* Warm amber-brown */
     --color-primary-hover: #A0671E;   /* Darker brown on hover */
-    --color-primary-light: rgba(200, 132, 42, 0.12);
+    --color-primary-light: rgba(200, 132, 42, 0.08);
 
-    --color-eco: #7A8000;             /* Olive green (the "é" in éco) */
-    --color-eco-light: rgba(122, 128, 0, 0.15);
+    --color-eco: #7A8000;             /* Olive green */
+    --color-eco-light: rgba(122, 128, 0, 0.08);
 
-    --color-accent-brown: #6B2F10;    /* Deep dark brown (magnifying handle) */
-    --color-accent-sand: #D2A76A;     /* Light sand/beige tone */
+    --color-accent-brown: #4A3520;    /* Deep dark brown */
+    --color-accent-sand: #D2A76A;     /* Light sand/beige */
 
-    --color-background-dark: #0F0C08; /* Very dark warm-brown background */
-    --color-surface-dark: #1A1410;    /* Card surface — warm dark */
-    --color-surface-dark-hover: #241C14;
-    --color-border-dark: #3D2E1A;     /* Warm border */
+    --color-background: #FAFAF8;        /* Very light warm white */
+    --color-background-dark: #FAFAF8;   /* Alias for compatibility */
+    --color-surface: #FFFFFF;           /* Card surface — white */
+    --color-surface-hover: #F8F6F3;     /* Subtle warm hover */
+    --color-border: #E8E0D6;            /* Warm light border */
+    --color-border-dark: #E8E0D6;       /* Alias for compatibility */
+    --color-surface-dark: #FFFFFF;       /* Alias for compatibility */
+    --color-surface-dark-hover: #F8F6F3;
 
-    --color-navy-700: #2A1E0F;
-    --color-navy-800: #1A1208;
-    --color-navy-900: #0D0904;
+    --color-navy-700: #F5F0EB;
+    --color-navy-800: #FAFAF8;
+    --color-navy-900: #FFFFFF;
+
+    --color-text-primary: #2A1F14;    /* Dark brown text */
+    --color-text-secondary: #6B5A47;  /* Medium brown */
+    --color-text-muted: #A09080;      /* Light brown/muted */
 
     --font-family-display: "Outfit", "Inter", sans-serif;
 }
@@ -31,24 +39,25 @@ html {
 
 body {
     font-family: var(--font-family-display);
-    background-color: var(--color-background-dark);
-    color: #f8fafc;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
 }
 
 .glass-effect {
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(16px);
-    background-color: rgba(13, 22, 38, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 1px 3px rgba(74, 53, 32, 0.04);
 }
 
 .premium-gradient {
-    background: linear-gradient(135deg, var(--color-navy-800) 0%, var(--color-navy-900) 100%);
+    background: linear-gradient(135deg, #FFFFFF 0%, #F8F6F3 100%);
 }
 
 .text-gradient {
-    background: linear-gradient(to right, #ffffff, var(--color-primary));
+    background: linear-gradient(to right, var(--color-accent-brown), var(--color-primary));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -71,41 +80,55 @@ body {
 }
 
 .card {
-    background-color: var(--color-surface-dark);
-    border: 1px solid var(--color-border-dark);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 1.25rem;
     padding: 1.5rem;
     transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(74, 53, 32, 0.04);
 }
 
 .card:hover {
     transform: translateY(-4px);
     border-color: var(--color-primary);
+    box-shadow: 0 8px 24px rgba(200, 132, 42, 0.08);
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
-    color: #020c1b;
+    background: linear-gradient(135deg, var(--color-accent-brown) 0%, var(--color-primary) 100%);
+    color: #FFFFFF;
     font-weight: 600;
     padding: 0.75rem 1.5rem;
     border-radius: 1rem;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 4px 16px rgba(200, 132, 42, 0.2);
+    transform: translateY(-1px);
 }
 
 .input-field {
     width: 100%;
-    background-color: rgba(10, 25, 47, 0.4);
-    border: 1px solid var(--color-border-dark);
+    background-color: #F8F6F3;
+    border: 1px solid var(--color-border);
     border-radius: 0.875rem;
     padding: 0.75rem 1rem;
-    color: white;
+    color: var(--color-text-primary);
     outline: none;
+    transition: border-color 0.2s ease;
 }
 
 .input-field:focus {
     border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(200, 132, 42, 0.08);
+}
+
+.input-field::placeholder {
+    color: var(--color-text-muted);
 }
 
 .nav-link {
@@ -114,12 +137,30 @@ body {
     gap: 0.75rem;
     padding: 0.75rem 1rem;
     border-radius: 0.75rem;
-    color: #94a3b8;
+    color: var(--color-text-secondary);
     transition: all 0.2s ease;
 }
 
 .nav-link:hover,
 .nav-link.active {
     color: var(--color-primary);
-    background-color: rgba(0, 180, 255, 0.1);
+    background-color: var(--color-primary-light);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
 }

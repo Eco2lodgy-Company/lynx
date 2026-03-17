@@ -53,19 +53,18 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-navy-900 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
             {/* Ultra Premium Background Decorative Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
                 <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] animate-pulse stagger-2" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-sky-500/5 rounded-full blur-[150px]" />
 
                 {/* Advanced Grid Pattern */}
                 <div
-                    className="absolute inset-0 opacity-[0.05]"
+                    className="absolute inset-0 opacity-[0.2]"
                     style={{
                         backgroundImage:
-                            "linear-gradient(rgba(0,180,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0,180,255,0.2) 1px, transparent 1px)",
+                            "linear-gradient(rgba(200,132,42,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(200,132,42,0.1) 1px, transparent 1px)",
                         backgroundSize: "40px 40px",
                         maskImage: "radial-gradient(circle at center, black 40%, transparent 80%)"
                     }}
@@ -75,34 +74,34 @@ export default function LoginPage() {
             <div className="w-full max-w-md relative z-10">
                 {/* Logo & Branding - Enhanced */}
                 <div className="text-center mb-12 animate-fade-in">
-                    <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-[2rem] mb-8 shadow-2xl shadow-primary/10 relative group">
+                    <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-primary-light to-surface border border-primary/20 rounded-[2rem] mb-8 shadow-xl shadow-primary/10 relative group">
                         <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                         <HardHat className="w-12 h-12 text-primary relative z-10" />
                     </div>
                     <h1 className="text-5xl font-bold tracking-tighter mb-3">
-                        <span className="text-white">LYNX</span>
+                        <span className="text-text-primary">LYNX</span>
                         <span className="text-primary">.</span>
                     </h1>
-                    <p className="text-[10px] text-primary font-bold tracking-[0.4em] uppercase opacity-70">
+                    <p className="text-[10px] text-primary font-bold tracking-[0.4em] uppercase opacity-80">
                         Smart Construction Management
                     </p>
                 </div>
 
                 {/* Login Card - Glassmorphism Evolution */}
-                <div className="glass-effect rounded-[2.5rem] p-10 shadow-2xl shadow-black/80 animate-scale-up stagger-1 border border-white/10 relative overflow-hidden">
+                <div className="bg-surface rounded-[2.5rem] p-10 shadow-xl shadow-black/5 animate-scale-up stagger-1 border border-border relative overflow-hidden">
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 
                     <div className="flex items-center gap-3 mb-10">
                         <div className="w-1 h-6 bg-primary rounded-full" />
-                        <h2 className="text-xl font-bold text-white tracking-tight">Accès Plateforme</h2>
+                        <h2 className="text-xl font-bold text-text-primary tracking-tight">Accès Plateforme</h2>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-8">
                         {/* Error message */}
                         {error && (
-                            <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 animate-fade-in flex items-center gap-3">
+                            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 animate-fade-in flex items-center gap-3">
                                 <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                                <p className="text-red-400 text-xs font-medium">{error}</p>
+                                <p className="text-red-500 text-xs font-medium">{error}</p>
                             </div>
                         )}
 
@@ -110,7 +109,7 @@ export default function LoginPage() {
                         <div className="space-y-3">
                             <label
                                 htmlFor="email"
-                                className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
+                                className="text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1"
                             >
                                 Identifiant Professionnel
                             </label>
@@ -120,7 +119,7 @@ export default function LoginPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="nom@ngs-platform.com"
-                                className="input-field !bg-navy-900/60 !border-white/5 focus:!border-primary/50 text-base"
+                                className="input-field text-base"
                                 required
                                 autoComplete="email"
                             />
@@ -128,12 +127,14 @@ export default function LoginPage() {
 
                         {/* Password */}
                         <div className="space-y-3">
-                            <label
-                                htmlFor="password"
-                                className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1"
-                            >
-                                Clef d&apos;Accès
-                            </label>
+                            <div className="flex items-center justify-between">
+                                <label
+                                    htmlFor="password"
+                                    className="text-[10px] font-bold text-text-muted uppercase tracking-widest ml-1"
+                                >
+                                    Clef d&apos;Accès
+                                </label>
+                            </div>
                             <div className="relative">
                                 <input
                                     id="password"
@@ -141,14 +142,14 @@ export default function LoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="input-field !bg-navy-900/60 !border-white/5 focus:!border-primary/50 pr-14 text-base"
+                                    className="input-field pr-14 text-base"
                                     required
                                     autoComplete="current-password"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-primary transition-all p-2 rounded-lg hover:bg-white/5"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary transition-all p-2 rounded-lg hover:bg-surface-hover"
                                     title={showPassword ? "Masquer" : "Afficher"}
                                 >
                                     {showPassword ? (
@@ -168,13 +169,13 @@ export default function LoginPage() {
                         >
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader2 className="w-5 h-5 animate-spin invert" />
                                     Authentification...
                                 </>
                             ) : (
                                 <>
                                     Se Connecter
-                                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform invert" />
                                 </>
                             )}
                         </button>
@@ -183,15 +184,15 @@ export default function LoginPage() {
 
                 {/* Footer - Professional */}
                 <div className="text-center mt-12 animate-fade-in stagger-3">
-                    <p className="text-[10px] font-bold text-slate-700 uppercase tracking-[0.3em]">
+                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.3em]">
                         © 2024 ECOTECH Platform
                         <br />
-                        <span className="text-[10px] opacity-50">powered by NGS</span>
+                        <span className="text-[10px] bg-clip-text">powered by NGS</span>
                     </p>
-                    <div className="flex items-center justify-center gap-4 mt-4 opacity-30">
-                        <div className="h-[1px] w-8 bg-slate-700" />
-                        <HardHat className="w-4 h-4 text-slate-700" />
-                        <div className="h-[1px] w-8 bg-slate-700" />
+                    <div className="flex items-center justify-center gap-4 mt-4 opacity-50">
+                        <div className="h-[1px] w-8 bg-border" />
+                        <HardHat className="w-4 h-4 text-text-muted" />
+                        <div className="h-[1px] w-8 bg-border" />
                     </div>
                 </div>
             </div>

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 export async function GET() {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
-    const userId = session.user.id;
-    const isClient = session.user.role === "CLIENT";
+    const userId = user.id;
+    const isClient = user.role === "CLIENT";
 
     const feedbacks = await prisma.feedback.findMany({
         where: isClient ? { authorId: userId } : undefined,
@@ -22,8 +22,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    const user = await getAuthorizedUser();
+    if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
     try {
         const { subject, message, projectId, priority } = await req.json();
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
                 projectId,
                 priority: priority || "NORMALE",
                 status: "EN_ATTENTE",
-                authorId: session.user.id,
+                authorId: user.id,
             },
             include: { project: { select: { id: true, name: true } } },
         });

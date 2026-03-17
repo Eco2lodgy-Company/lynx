@@ -28,7 +28,10 @@ export async function GET(req: NextRequest) {
         where,
         include: {
             user: {
-                select: { id: true, firstName: true, lastName: true, role: true },
+                select: { id: true, firstName: true, lastName: true, role: true, avatar: true },
+            },
+            project: {
+                select: { id: true, name: true },
             },
         },
         orderBy: { createdAt: "desc" },

@@ -118,10 +118,10 @@ export default function Sidebar({ userRole, userName, userAvatar }: SidebarProps
     return (
         <>
             {/* Mobile Header */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-surface-dark/95 backdrop-blur-xl border-b border-border-dark z-50 flex items-center justify-between px-4">
+            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-xl border-b border-border z-50 flex items-center justify-between px-4">
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="p-2 text-slate-400 hover:text-primary transition-colors"
+                    className="p-2 text-text-secondary hover:text-primary transition-colors"
                     title="Ouvrir le menu"
                 >
                     <Menu className="w-6 h-6" />
@@ -136,43 +136,43 @@ export default function Sidebar({ userRole, userName, userAvatar }: SidebarProps
             {/* Overlay */}
             {isOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-black/60 z-50"
+                    className="lg:hidden fixed inset-0 bg-black/30 z-50"
                     onClick={() => setIsOpen(false)}
                 />
             )}
 
             {/* Sidebar */}
             <aside
-                className={`fixed top-0 left-0 h-full w-72 bg-navy-900 border-r border-border-dark z-50 flex flex-col transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
-          lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"} shadow-2xl shadow-black/50`}
+                className={`fixed top-0 left-0 h-full w-72 bg-white border-r border-border z-50 flex flex-col transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1)
+          lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"} shadow-lg shadow-black/5`}
             >
-                {/* Logo Section with Premium Gradient */}
-                <div className="h-20 flex items-center justify-between px-6 border-b border-border-dark bg-navy-800/50 backdrop-blur-sm">
+                {/* Logo Section */}
+                <div className="h-20 flex items-center justify-between px-6 border-b border-border bg-background/50 backdrop-blur-sm">
                     <div className="flex items-center gap-4 group">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-hover rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
-                            <HardHat className="w-6 h-6 text-navy-900" />
+                        <div className="w-10 h-10 bg-gradient-to-br from-accent-brown to-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/15 group-hover:scale-110 transition-transform duration-300">
+                            <HardHat className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold text-white tracking-widest flex items-center gap-1">
+                            <h1 className="text-xl font-bold text-text-primary tracking-widest flex items-center gap-1">
                                 ECOTECH <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />
                             </h1>
                             <p className="text-[9px] text-primary/60 font-bold tracking-[0.2em] uppercase">ECOTECH Platform</p>
-                            <p className="text-[8px] text-slate-600 font-medium">powered by NGS</p>
+                            <p className="text-[8px] text-text-muted font-medium">powered by NGS</p>
                         </div>
                     </div>
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="lg:hidden p-2 text-slate-400 hover:text-primary hover:bg-white/5 rounded-xl transition-all"
+                        className="lg:hidden p-2 text-text-muted hover:text-primary hover:bg-primary-light rounded-xl transition-all"
                         title="Fermer le menu"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                {/* Navigation with Staggered Groups */}
+                {/* Navigation */}
                 <nav className="flex-1 overflow-y-auto py-8 px-4 space-y-6">
                     <div className="space-y-1">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 px-4 mb-4 opacity-50">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted px-4 mb-4 opacity-60">
                             Menu Principal
                         </p>
                         {navItems.map((item) => {
@@ -180,11 +180,11 @@ export default function Sidebar({ userRole, userName, userAvatar }: SidebarProps
                             if (item.href === "#") {
                                 return (
                                     <div key={item.label} className="pt-4 pb-2 px-4">
-                                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 opacity-50">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted opacity-60">
                                             {item.icon}
                                             <span>{item.label.replace(/─/g, "").trim()}</span>
                                         </div>
-                                        <div className="border-t border-border-dark/50 mt-2" />
+                                        <div className="border-t border-border/50 mt-2" />
                                     </div>
                                 );
                             }
@@ -199,10 +199,10 @@ export default function Sidebar({ userRole, userName, userAvatar }: SidebarProps
                                     {isActive && (
                                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-full animate-fade-in" />
                                     )}
-                                    <div className={`p-2 rounded-lg transition-colors ${isActive ? "text-primary bg-primary/10" : "text-slate-500 group-hover:text-primary group-hover:bg-primary/5"}`}>
+                                    <div className={`p-2 rounded-lg transition-colors ${isActive ? "text-primary bg-primary-light" : "text-text-muted group-hover:text-primary group-hover:bg-primary-light"}`}>
                                         {item.icon}
                                     </div>
-                                    <span className={`flex-1 font-medium transition-colors ${isActive ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`}>
+                                    <span className={`flex-1 font-medium transition-colors ${isActive ? "text-text-primary font-semibold" : "text-text-secondary group-hover:text-text-primary"}`}>
                                         {item.label}
                                     </span>
                                 </Link>
@@ -211,33 +211,33 @@ export default function Sidebar({ userRole, userName, userAvatar }: SidebarProps
                     </div>
                 </nav>
 
-                {/* User Profile & Logout - Fixed at bottom */}
-                <div className="p-4 bg-navy-800/30 border-t border-border-dark backdrop-blur-md">
+                {/* User Profile & Logout */}
+                <div className="p-4 bg-background/50 border-t border-border backdrop-blur-md">
                     <Link
                         href="/profile"
                         onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-4 mb-4 p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 hover:bg-white/10 transition-all group overflow-hidden relative"
+                        className="flex items-center gap-4 mb-4 p-3 rounded-2xl bg-surface border border-border hover:border-primary/30 hover:bg-surface-hover transition-all group overflow-hidden relative"
                     >
                         {/* Status Indicator */}
-                        <div className="absolute right-3 top-3 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        <div className="absolute right-3 top-3 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
 
                         <div className="relative">
                             {userAvatar ? (
                                 <img
                                     src={assetUrl(userAvatar)}
                                     alt={`Avatar de ${userName}`}
-                                    className="w-12 h-12 rounded-xl object-cover border-2 border-white/10 group-hover:border-primary/50 transition-all duration-300 shadow-lg"
+                                    className="w-12 h-12 rounded-xl object-cover border-2 border-border group-hover:border-primary/50 transition-all duration-300 shadow-sm"
                                 />
                             ) : (
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-navy-700 to-navy-900 border-2 border-white/10 flex items-center justify-center group-hover:border-primary/50 transition-all duration-300 shadow-lg">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-light to-surface border-2 border-border flex items-center justify-center group-hover:border-primary/50 transition-all duration-300 shadow-sm">
                                     <span className="text-sm font-bold text-primary">{initials}</span>
                                 </div>
                             )}
                         </div>
 
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white truncate group-hover:text-primary transition-colors">{userName}</p>
-                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                            <p className="text-sm font-bold text-text-primary truncate group-hover:text-primary transition-colors">{userName}</p>
+                            <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider">
                                 {userRole === "ADMIN" && "Administrateur"}
                                 {userRole === "CONDUCTEUR" && "Conducteur"}
                                 {userRole === "CHEF_EQUIPE" && "Chef d'équipe"}
@@ -249,13 +249,13 @@ export default function Sidebar({ userRole, userName, userAvatar }: SidebarProps
 
                     <button
                         onClick={() => signOut({ callbackUrl: "/lynx/login" })}
-                        className="w-full flex items-center justify-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20 shadow-sm"
+                        className="w-full flex items-center justify-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-widest text-red-400/70 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-200 shadow-sm"
                     >
                         <LogOut className="w-4 h-4" />
                         Se déconnecter
                     </button>
                 </div>
-            </aside >
+            </aside>
         </>
     );
 }

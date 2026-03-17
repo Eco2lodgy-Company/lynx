@@ -68,7 +68,6 @@ async function syncProjectChannels(projectId: string) {
                 }
             });
         } else {
-            // Sync members
             for (const uid of clientMemberIds) {
                 await prisma.conversationMember.upsert({
                     where: { conversationId_userId: { conversationId: clientConv.id, userId: uid } },
@@ -78,16 +77,48 @@ async function syncProjectChannels(projectId: string) {
             }
         }
     }
+
+    // 3. Canal Chantier (Ouvriers + Chef d'équipe + Admin)
+    const chantierMemberIds = new Set([...adminIds]);
+    if (project.supervisorId) chantierMemberIds.add(project.supervisorId);
+    for (const pt of project.projectTeams) {
+        if (pt.team.leaderId) chantierMemberIds.add(pt.team.leaderId);
+        // Add all team members (ouvriers)
+        const members = await prisma.teamMember.findMany({
+            where: { teamId: pt.team.id },
+            select: { userId: true }
+        });
+        members.forEach(m => chantierMemberIds.add(m.userId));
+    }
+
+    const chantierName = `Chantier - ${project.name}`;
+    let chantierConv = await prisma.conversation.findFirst({
+        where: { projectId, name: chantierName }
+    });
+
+    if (!chantierConv) {
+        chantierConv = await prisma.conversation.create({
+            data: {
+                name: chantierName,
+                projectId,
+                members: { create: Array.from(chantierMemberIds).map(uid => ({ userId: uid })) }
+            }
+        });
+    } else {
+        for (const uid of chantierMemberIds) {
+            await prisma.conversationMember.upsert({
+                where: { conversationId_userId: { conversationId: chantierConv.id, userId: uid } },
+                create: { conversationId: chantierConv.id, userId: uid },
+                update: {}
+            });
+        }
+    }
 }
 
 // GET /api/conversations
 export async function GET(req: NextRequest) {
     const user = await getAuthorizedUser();
     if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-
-    if (user.role === "OUVRIER") {
-        return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
-    }
 
     // Auto-sync channels for projects the user is involved in
     try {
@@ -102,6 +133,14 @@ export async function GET(req: NextRequest) {
             userProjects = await prisma.project.findMany({ 
                 where: { projectTeams: { some: { team: { leaderId: user.id } } } },
                 select: { id: true } 
+            });
+        } else if (user.role === "OUVRIER") {
+            // Workers see channels for projects their team is assigned to
+            const myTeams = await prisma.teamMember.findMany({ where: { userId: user.id }, select: { teamId: true } });
+            const teamIds = myTeams.map(t => t.teamId);
+            userProjects = await prisma.project.findMany({
+                where: { projectTeams: { some: { teamId: { in: teamIds } } } },
+                select: { id: true }
             });
         }
 
@@ -137,10 +176,6 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     const user = await getAuthorizedUser();
     if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-
-    if (user.role === "OUVRIER") {
-        return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
-    }
 
     try {
         const { name, projectId, participantIds } = await req.json();
