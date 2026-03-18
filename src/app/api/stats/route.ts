@@ -36,7 +36,7 @@ export async function GET() {
         prisma.user.findMany({ select: { id: true, role: true, isActive: true } }),
         prisma.project.findMany({ 
             where: projectFilter,
-            select: { id: true, status: true, progress: true } 
+            select: { id: true, name: true, status: true, progress: true } 
         }),
         prisma.task.findMany({ 
             where: { project: projectFilter },
@@ -92,6 +92,30 @@ export async function GET() {
     const attendancePresent = attendanceToday.filter(a => a.status === "VALIDE" && a.checkIn).length;
     const attendanceAbsent = allUsers.filter(u => u.isActive && !attendanceToday.some(a => a.userId === u.id)).length; 
 
+    // 7. Project Health (List of projects with their stats) - Optimized with maps
+    const incidentCountsByProject: Record<string, number> = {};
+    const taskCountsByProject: Record<string, number> = {};
+
+    allIncidents.forEach(i => {
+        const pid = (i as any).projectId;
+        if (pid) incidentCountsByProject[pid] = (incidentCountsByProject[pid] || 0) + 1;
+    });
+
+    allTasks.forEach(t => {
+        const pid = (t as any).projectId;
+        if (pid) taskCountsByProject[pid] = (taskCountsByProject[pid] || 0) + 1;
+    });
+
+    const projectHealth = allProjects.map(p => {
+        return {
+            id: p.id,
+            name: p.name,
+            progress: p.progress,
+            incidents: incidentCountsByProject[p.id] || 0,
+            tasks: taskCountsByProject[p.id] || 0
+        };
+    });
+
     return NextResponse.json({
         users: { 
             total: allUsers.length, 
@@ -124,7 +148,8 @@ export async function GET() {
             today: allUsers.length, // total possible 
             present: attendancePresent, 
             absent: attendanceAbsent, 
-            late: 0 // hard to compute relative to a schedule without more shift data!
-        }
+            late: 0 
+        },
+        projectHealth
     });
 }

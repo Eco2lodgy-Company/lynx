@@ -56,8 +56,7 @@ export async function POST(req: NextRequest) {
         }
 
         const dateObj = new Date(date || new Date());
-        const dateStr = dateObj.toISOString().split("T")[0];
-        const startOfDay = new Date(`${dateStr}T00:00:00.000Z`);
+        const startOfDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
 
         // Check duplicate
         const existing = await prisma.attendance.findFirst({
