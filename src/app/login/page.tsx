@@ -61,13 +61,7 @@ export default function LoginPage() {
 
                 {/* Advanced Grid Pattern */}
                 <div
-                    className="absolute inset-0 opacity-[0.2]"
-                    style={{
-                        backgroundImage:
-                            "linear-gradient(rgba(200,132,42,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(200,132,42,0.1) 1px, transparent 1px)",
-                        backgroundSize: "40px 40px",
-                        maskImage: "radial-gradient(circle at center, black 40%, transparent 80%)"
-                    }}
+                    className="absolute inset-0 opacity-[0.2] bg-[linear-gradient(rgba(200,132,42,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(200,132,42,0.1)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(circle_at_center,black_40%,transparent_80%)]"
                 />
             </div>
 

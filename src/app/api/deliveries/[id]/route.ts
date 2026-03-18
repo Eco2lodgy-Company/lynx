@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getAuthorizedUser } from "@/lib/api-auth";
 
 // PUT /api/deliveries/[id] — Update delivery status
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CONDUCTEUR", "CHEF_EQUIPE"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR", "CHEF_EQUIPE"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -38,8 +38,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/deliveries/[id]
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    const session = await auth();
-    if (!session?.user || !["ADMIN", "CONDUCTEUR", "CHEF_EQUIPE"].includes(session.user.role)) {
+    const user = await getAuthorizedUser();
+    if (!user || !["ADMIN", "CONDUCTEUR", "CHEF_EQUIPE"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 

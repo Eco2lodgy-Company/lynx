@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         const {
             projectId, date, weather, temperature,
             summary, workCompleted, issues, materialsUsed,
-            status,
+            status, photoUrls,
         } = body;
 
         if (!projectId || !date || !summary) {
@@ -74,10 +74,17 @@ export async function POST(req: NextRequest) {
                 issues: issues || null,
                 materials: materialsUsed || null,
                 status: status || "BROUILLON",
+                photos: photoUrls && photoUrls.length > 0 ? {
+                    create: photoUrls.map((url: string) => ({
+                        url,
+                        uploadedById: user.id
+                    }))
+                } : undefined,
             },
             include: {
                 author: { select: { id: true, firstName: true, lastName: true } },
                 project: { select: { id: true, name: true } },
+                photos: true,
             },
         });
 

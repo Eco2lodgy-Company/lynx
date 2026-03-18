@@ -60,22 +60,38 @@ export default function ChatInterface() {
 
     const fetchConversations = useCallback(async () => {
         const res = await fetch("/api/conversations");
-        if (res.ok) setConversations(await res.json());
+        if (res.ok) {
+            const data = await res.json();
+            setConversations(data);
+        }
         setLoadingConvs(false);
     }, []);
 
-    useEffect(() => { fetchConversations(); }, [fetchConversations]);
+    useEffect(() => {
+        const init = async () => {
+            await fetchConversations();
+        };
+        init();
+    }, [fetchConversations]);
 
     const fetchMessages = useCallback(async (convId: string) => {
         setLoadingMsgs(true);
         const res = await fetch(`/api/messages?conversationId=${convId}`);
-        if (res.ok) setMessages(await res.json());
+        if (res.ok) {
+            const data = await res.json();
+            setMessages(data);
+        }
         setLoadingMsgs(false);
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, []);
 
     useEffect(() => {
-        if (selectedConv) fetchMessages(selectedConv);
+        const load = async () => {
+            if (selectedConv) {
+                await fetchMessages(selectedConv);
+            }
+        };
+        load();
     }, [selectedConv, fetchMessages]);
 
     // Poll messages every 5 seconds if a conversation is open
@@ -271,13 +287,21 @@ export default function ChatInterface() {
                                                     </div>
                                                 )}
                                                 <div className={`p-3 rounded-2xl ${isMe ? 'bg-primary text-[#0d1626] rounded-br-sm' : 'bg-slate-800 text-slate-200 rounded-bl-sm'}`}>
-                                                    {msg.attachments?.length > 0 && (
-                                                        <div className="flex flex-wrap gap-2 mb-2">
-                                                            {msg.attachments.map(att => (
-                                                                <img key={att.url} src={assetUrl(att.url)} alt="" className="max-w-xs max-h-48 rounded-lg object-contain bg-black/20" />
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                                    {(() => {
+                                                        let atts = msg.attachments;
+                                                        if (typeof atts === 'string') {
+                                                            try { atts = JSON.parse(atts); } catch { atts = []; }
+                                                        }
+                                                        if (!Array.isArray(atts) || atts.length === 0) return null;
+                                                        return (
+                                                            <div className="flex flex-wrap gap-2 mb-2">
+                                                                {atts.map((att: { url: string; type?: string }) => (
+                                                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                                                    <img key={att.url} src={assetUrl(att.url)} alt="" className="max-w-xs max-h-48 rounded-lg object-contain bg-black/20" />
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    })()}
                                                     {msg.content && <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>}
                                                 </div>
                                             </div>

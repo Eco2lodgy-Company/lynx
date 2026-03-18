@@ -14,7 +14,7 @@ export async function GET() {
     const endOfDay = new Date(`${todayStr}T23:59:59.999Z`);
 
     // Define visibility filter for projects
-    let projectFilter: any = {};
+    let projectFilter: Record<string, unknown> = {};
     if (user.role === "CONDUCTEUR") {
         projectFilter = { supervisorId: user.id };
     } else if (user.role === "CLIENT") {
@@ -26,12 +26,14 @@ export async function GET() {
     }
 
     const [
+        allUsers,
         allProjects,
         allTasks,
         allIncidents,
         allLogs,
         attendanceToday,
     ] = await Promise.all([
+        prisma.user.findMany({ select: { id: true, role: true, isActive: true } }),
         prisma.project.findMany({ 
             where: projectFilter,
             select: { id: true, status: true, progress: true } 
@@ -53,43 +55,76 @@ export async function GET() {
                 date: { gte: startOfDay, lt: endOfDay },
                 ...(user.role === "ADMIN" ? {} : { OR: [{ userId: user.id }, { project: projectFilter }] })
             },
-            select: { status: true, userId: true },
+            select: { status: true, userId: true, checkIn: true },
         }),
     ]);
 
-    // Dashboard stats calculation
-    const activeProjects = allProjects.filter(p => !["TERMINE", "ANNULE"].includes(p.status)).length;
-    const completedTasks = allTasks.filter(t => t.status === "TERMINE").length;
-    const pendingValidations = allLogs.filter(l => l.status === "SOUMIS").length;
-    const recentIncidents = allIncidents.filter(i => i.status === "OUVERT").length;
+    // Dashboard stats calculation based on StatsData interface expected by frontend
 
-    // Project Health Tracking
-    const projectHealth = allProjects.map(p => {
-        const pTasks = allTasks.filter(t => t.status !== "TERMINE"); // Simplified for now
-        const pIncidents = allIncidents.filter(i => i.status === "OUVERT");
-        
-        return {
-            id: p.id,
-            status: p.status,
-            incidents: pIncidents.length,
-            tasks: pTasks.length,
-            progress: p.progress
-        };
-    });
+    // 1. Users
+    const usersByRole = allUsers.reduce((acc, u) => {
+        acc[u.role] = (acc[u.role] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    // 2. Projects
+    const projectsByStatus = allProjects.reduce((acc, p) => {
+        acc[p.status] = (acc[p.status] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+    const avgProgress = allProjects.length > 0 ? allProjects.reduce((acc, p) => acc + p.progress, 0) / allProjects.length : 0;
+
+    // 3. Tasks
+    const tasksCompleted = allTasks.filter(t => t.status === "TERMINE").length;
+    const tasksInProgress = allTasks.filter(t => t.status === "EN_COURS").length;
+    const tasksOverdue = allTasks.filter(t => t.dueDate && new Date(t.dueDate) < now && t.status !== "TERMINE").length;
+
+    // 4. Incidents
+    const incidentsOpen = allIncidents.filter(i => i.status === "OUVERT" || i.status === "EN_COURS").length;
+    const incidentsCritical = allIncidents.filter(i => i.severity === "CRITIQUE").length;
+    const incidentsResolved = allIncidents.filter(i => i.status === "RESOLU").length;
+
+    // 5. Logs
+    const logsValidated = allLogs.filter(l => l.status === "VALIDE").length;
+    const logsPending = allLogs.filter(l => l.status === "SOUMIS").length;
+
+    // 6. Attendance
+    const attendancePresent = attendanceToday.filter(a => a.status === "VALIDE" && a.checkIn).length;
+    const attendanceAbsent = allUsers.filter(u => u.isActive && !attendanceToday.some(a => a.userId === u.id)).length; 
 
     return NextResponse.json({
-        activeProjects,
-        pendingValidations,
-        recentIncidents,
-        completedTasks,
-        projectHealth,
-        avgProgress: allProjects.length > 0 ? allProjects.reduce((acc, p) => acc + p.progress, 0) / allProjects.length : 0,
-        counts: {
-            projects: allProjects.length,
-            tasks: allTasks.length,
-            incidents: allIncidents.length,
-            logs: allLogs.length,
-            attendance: attendanceToday.length
+        users: { 
+            total: allUsers.length, 
+            byRole: usersByRole, 
+            active: allUsers.filter(u => u.isActive).length 
+        },
+        projects: { 
+            total: allProjects.length, 
+            byStatus: projectsByStatus, 
+            avgProgress 
+        },
+        tasks: { 
+            total: allTasks.length, 
+            completed: tasksCompleted, 
+            inProgress: tasksInProgress, 
+            overdue: tasksOverdue 
+        },
+        incidents: { 
+            total: allIncidents.length, 
+            open: incidentsOpen, 
+            critical: incidentsCritical, 
+            resolved: incidentsResolved 
+        },
+        logs: { 
+            total: allLogs.length, 
+            validated: logsValidated, 
+            pending: logsPending 
+        },
+        attendance: { 
+            today: allUsers.length, // total possible 
+            present: attendancePresent, 
+            absent: attendanceAbsent, 
+            late: 0 // hard to compute relative to a schedule without more shift data!
         }
     });
 }
