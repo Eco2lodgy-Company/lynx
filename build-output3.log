@@ -1,0 +1,71 @@
+﻿
+> lynx@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+node.exe : ÔÜá The 
+"middleware" file convention 
+is deprecated. Please use 
+"proxy" instead. Learn more: h
+ttps://nextjs.org/docs/message
+s/middleware-to-proxy
+Au caractère Ligne:1 : 1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: (ÔÜá The "  
+  middle...leware-to-proxy:   
+ String) [], RemoteExcepti    
+on
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 49s
+  Running TypeScript ...
+Failed to compile.
+
+./src/app/api/departments/rout
+e.ts:24:27
+Type error: Cannot find name 
+'auth'.
+
+[0m [90m 22 |[39m
+ [90m 23 |[39m 
+[36mexport[39m 
+[36masync[39m 
+[36mfunction[39m 
+[33mPOST[39m(req[33m:[39m 
+[33mNextRequest[39m) {
+[31m[1m>[22m[39m[90m 24 
+|[39m     [36mconst[39m 
+session [33m=[39m 
+[36mawait[39m 
+auth()[33m;[39m
+ [90m    |[39m              
+             
+[31m[1m^[22m[39m
+ [90m 25 |[39m     
+[36mif[39m ([33m![39msessi
+on[33m?[39m[33m.[39muser 
+[33m||[39m session[33m.[39
+muser[33m.[39mrole 
+[33m!==[39m 
+[32m"ADMIN"[39m) {
+ [90m 26 |[39m         
+[36mreturn[39m [33mNextResp
+onse[39m[33m.[39mjson({ 
+error[33m:[39m [32m"Non 
+autoris├®"[39m }[33m,[39m 
+{ status[33m:[39m 
+[35m403[39m })[33m;[39m
+ [90m 27 |[39m     }[0m
+Next.js build worker exited 
+with code: 1 and signal: null
