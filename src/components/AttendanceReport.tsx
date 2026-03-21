@@ -8,7 +8,9 @@ import {
     Construction,
     Loader2,
     Search,
-    ChevronDown
+    ChevronDown,
+    Clock,
+    LogOut
 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -24,6 +26,15 @@ interface Team {
 }
 
 import { useSearchParams } from "next/navigation";
+
+function calcHours(checkIn: string | null, checkOut: string | null): string {
+    if (!checkIn || !checkOut) return "—";
+    const diff = new Date(checkOut).getTime() - new Date(checkIn).getTime();
+    if (diff <= 0) return "—";
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return `${h}h${m.toString().padStart(2, "0")}`;
+}
 
 export default function AttendanceReport() {
     const searchParams = useSearchParams();
@@ -71,6 +82,15 @@ export default function AttendanceReport() {
         fetchData();
     }, [fetchData]);
 
+    // Totals
+    const totalHours = data.reduce((acc, item) => {
+        if (item.checkIn && item.checkOut) {
+            const diff = new Date(item.checkOut).getTime() - new Date(item.checkIn).getTime();
+            acc += diff / 3600000;
+        }
+        return acc;
+    }, 0);
+
     const exportPDF = async () => {
         if (data.length === 0) return;
         setExporting(true);
@@ -94,12 +114,14 @@ export default function AttendanceReport() {
                 item.project?.name || "N/A",
                 item.status,
                 item.checkIn ? new Date(item.checkIn).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—",
+                item.checkOut ? new Date(item.checkOut).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—",
+                calcHours(item.checkIn, item.checkOut),
                 item.validatedBy ? `${item.validatedBy.firstName} ${item.validatedBy.lastName}` : "Non validé"
             ]);
 
             autoTable(doc, {
                 startY: 45,
-                head: [["Date", "Nom", "Projet", "Statut", "Arrivée", "Validé par"]],
+                head: [["Date", "Nom", "Projet", "Statut", "Arrivée", "Départ", "Heures", "Validé par"]],
                 body: tableData,
                 theme: "grid",
                 headStyles: { fillColor: [0, 150, 255] },
@@ -114,6 +136,23 @@ export default function AttendanceReport() {
 
     return (
         <div className="space-y-6">
+            {/* Summary Cards */}
+            {data.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
+                    {[
+                        { label: "Enregistrements", value: data.length, color: "text-primary", bg: "bg-primary/10" },
+                        { label: "Validés", value: data.filter(d => d.status === "VALIDE").length, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+                        { label: "Avec Départ", value: data.filter(d => d.checkOut).length, color: "text-blue-400", bg: "bg-blue-500/10" },
+                        { label: "Total Heures", value: `${Math.floor(totalHours)}h${Math.round((totalHours % 1) * 60).toString().padStart(2, "0")}`, color: "text-amber-400", bg: "bg-amber-500/10" },
+                    ].map(stat => (
+                        <div key={stat.label} className={`card !p-4 border-white/5 ${stat.bg}`}>
+                            <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">{stat.label}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {/* Filters Bar */}
             <div className="card shadow-lg border-primary/10 overflow-visible">
                 <div className="flex flex-wrap items-end gap-4">
@@ -146,7 +185,7 @@ export default function AttendanceReport() {
                     </div>
 
                     <div className="space-y-1.5 flex-1 min-w-[200px]">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Projet Specific</label>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Projet Spécifique</label>
                         <div className="relative">
                             <select
                                 value={filters.projectId}
@@ -216,43 +255,64 @@ export default function AttendanceReport() {
                                 <th className="px-6 py-4">Ouvrier</th>
                                 <th className="px-6 py-4">Projet</th>
                                 <th className="px-6 py-4">Statut</th>
-                                <th className="px-6 py-4">HR Arrivée</th>
+                                <th className="px-6 py-4">
+                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-emerald-400" /> Arrivée</span>
+                                </th>
+                                <th className="px-6 py-4">
+                                    <span className="flex items-center gap-1"><LogOut className="w-3 h-3 text-blue-400" /> Départ</span>
+                                </th>
+                                <th className="px-6 py-4">Heures</th>
                                 <th className="px-6 py-4">Validé par</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
                                         Aucune donnée à afficher. Ajustez les filtres et cliquez sur &quot;Générer&quot;.
                                     </td>
                                 </tr>
                             ) : (
-                                data.map((item) => (
-                                    <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                                        <td className="px-6 py-4 font-mono text-slate-400">
-                                            {new Date(item.date).toLocaleDateString("fr-FR")}
-                                        </td>
-                                        <td className="px-6 py-4 font-bold text-white">
-                                            {item.user.firstName} {item.user.lastName}
-                                        </td>
-                                        <td className="px-6 py-4 text-slate-400">
-                                            {item.project?.name || "—"}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`badge text-[10px] border-transparent ${item.status === "VALIDE" ? "text-emerald-400 bg-emerald-500/10" : "text-amber-400 bg-amber-500/10"
+                                data.map((item) => {
+                                    const hours = calcHours(item.checkIn, item.checkOut);
+                                    return (
+                                        <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                                            <td className="px-6 py-4 font-mono text-slate-400">
+                                                {new Date(item.date).toLocaleDateString("fr-FR")}
+                                            </td>
+                                            <td className="px-6 py-4 font-bold text-white">
+                                                {item.user.firstName} {item.user.lastName}
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-400">
+                                                {item.project?.name || "—"}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`badge text-[10px] border-transparent ${
+                                                    item.status === "VALIDE" ? "text-emerald-400 bg-emerald-500/10" :
+                                                    item.status === "EN_ATTENTE" ? "text-amber-400 bg-amber-500/10" :
+                                                    "text-red-400 bg-red-500/10"
                                                 }`}>
-                                                {item.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 font-mono text-primary">
-                                            {item.checkIn ? new Date(item.checkIn).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—"}
-                                        </td>
-                                        <td className="px-6 py-4 text-slate-500">
-                                            {item.validatedBy ? `${item.validatedBy.firstName} ${item.validatedBy.lastName}` : "Non validé"}
-                                        </td>
-                                    </tr>
-                                ))
+                                                    {item.status === "VALIDE" ? "✓ Validé" :
+                                                     item.status === "EN_ATTENTE" ? "En attente" : item.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 font-mono text-emerald-400">
+                                                {item.checkIn ? new Date(item.checkIn).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "—"}
+                                            </td>
+                                            <td className="px-6 py-4 font-mono text-blue-400">
+                                                {item.checkOut ? new Date(item.checkOut).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : (
+                                                    <span className="text-slate-600 italic">Non enregistré</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 font-mono font-bold text-amber-400">
+                                                {hours}
+                                            </td>
+                                            <td className="px-6 py-4 text-slate-500">
+                                                {item.validatedBy ? `${item.validatedBy.firstName} ${item.validatedBy.lastName}` : "Non validé"}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>

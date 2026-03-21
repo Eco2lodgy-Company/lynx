@@ -11,6 +11,7 @@ import {
     MapPin,
     ExternalLink,
     Send,
+    LogOut,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -45,6 +46,7 @@ export default function AttendancePage() {
     const [attendance, setAttendance] = useState<Attendance[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState<string | null>(null);
+    const [checkingOut, setCheckingOut] = useState<string | null>(null);
     const [transmitting, setTransmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -172,6 +174,43 @@ export default function AttendancePage() {
             setError("Erreur réseau");
         }
         setTransmitting(false);
+    };
+
+    const handleCheckOut = async (attendanceId: string, userId: string) => {
+        setCheckingOut(attendanceId);
+        setError(null);
+        try {
+            // Admin/chef manually records checkout by updating the record via the main attendance API
+            const res = await fetch("/api/attendance", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId,
+                    date: date,
+                    checkOut: new Date().toISOString(),
+                }),
+            });
+            if (res.ok) {
+                setSuccess("Départ enregistré avec succès.");
+                await fetchData();
+            } else {
+                const d = await res.json();
+                setError(d.error || "Erreur lors de l'enregistrement du départ");
+            }
+        } catch (e) {
+            console.error(e);
+            setError("Erreur réseau");
+        }
+        setCheckingOut(null);
+    };
+
+    const calcHours = (checkIn: string | null, checkOut: string | null): string => {
+        if (!checkIn || !checkOut) return "—";
+        const diff = new Date(checkOut).getTime() - new Date(checkIn).getTime();
+        if (diff <= 0) return "—";
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        return `${h}h${m.toString().padStart(2, "0")}`;
     };
 
     const formatDate = (dateStr: string) => {
@@ -318,10 +357,13 @@ export default function AttendancePage() {
                                                 <Clock className="w-3.5 h-3.5" />
                                                 {att.checkIn ? new Date(att.checkIn).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
                                             </div>
-                                            {att.checkOut && (
-                                                <div className="flex items-center gap-1.5 text-blue-400/80">
-                                                    <Clock className="w-3.5 h-3.5" />
-                                                    {new Date(att.checkOut).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                                            <div className="flex items-center gap-1.5 text-blue-400/80">
+                                                <LogOut className="w-3.5 h-3.5" />
+                                                {att.checkOut ? new Date(att.checkOut).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : <span className="text-slate-600 italic">Pas de départ</span>}
+                                            </div>
+                                            {att.checkIn && att.checkOut && (
+                                                <div className="flex items-center gap-1 text-amber-400/80 font-bold">
+                                                    {calcHours(att.checkIn, att.checkOut)}
                                                 </div>
                                             )}
                                         </div>
@@ -352,24 +394,31 @@ export default function AttendancePage() {
                                     </div>
 
                                     {/* Actions */}
-                                    <div className="flex items-center justify-end min-w-[140px]">
+                                    <div className="flex flex-col items-end gap-2 min-w-[160px]">
                                         {isPending ? (
                                             <button
                                                 onClick={() => handleSave(att.id)}
                                                 disabled={saving === att.id}
-                                                className="btn-primary !py-2.5 !px-6 text-xs font-bold uppercase tracking-widest bg-emerald-500 hover:bg-emerald-600 text-white border-transparent shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
+                                                className="btn-primary !py-2.5 !px-6 text-xs font-bold uppercase tracking-widest bg-emerald-500 hover:bg-emerald-600 text-white border-transparent shadow-lg shadow-emerald-500/20 active:scale-95 transition-all w-full"
                                             >
-                                                {saving === att.id ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    "Valider"
-                                                )}
+                                                {saving === att.id ? <Loader2 className="w-4 h-4 animate-spin" /> : "Valider Arrivée"}
                                             </button>
                                         ) : (
-                                            <div className="flex items-center gap-2 text-emerald-400/60 bg-emerald-500/5 px-4 py-2.5 rounded-xl border border-emerald-500/10">
+                                            <div className="flex items-center gap-2 text-emerald-400/60 bg-emerald-500/5 px-4 py-2.5 rounded-xl border border-emerald-500/10 w-full">
                                                 <CheckCircle2 className="w-4 h-4" />
-                                                <span className="text-[10px] font-bold uppercase tracking-widest">Enregistré</span>
+                                                <span className="text-[10px] font-bold uppercase tracking-widest">Arrivée validée</span>
                                             </div>
+                                        )}
+                                        {/* Check-out button — visible if no checkOut yet and attendance is validated */}
+                                        {att.status === "VALIDE" && !att.checkOut && (
+                                            <button
+                                                onClick={() => handleCheckOut(att.id, att.userId)}
+                                                disabled={checkingOut === att.id}
+                                                className="btn-primary !py-2.5 !px-4 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white border-transparent shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center gap-2 w-full"
+                                            >
+                                                {checkingOut === att.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+                                                Pointer Départ
+                                            </button>
                                         )}
                                     </div>
                                 </div>
