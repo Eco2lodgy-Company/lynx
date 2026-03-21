@@ -26,6 +26,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         if (body.rejectionNote !== undefined) updateData.rejectionNote = body.rejectionNote;
         if (body.correctionNotes !== undefined) updateData.correctionNotes = body.correctionNotes;
 
+        if (body.photoUrls && Array.isArray(body.photoUrls) && body.photoUrls.length > 0) {
+            updateData.photos = {
+                create: body.photoUrls.map((url: string) => ({
+                    url,
+                    uploadedById: user.id
+                }))
+            };
+        }
+
         const log = await prisma.dailyLog.update({
             where: { id },
             data: updateData,
@@ -74,7 +83,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 // DELETE /api/daily-logs/:id
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const user = await getAuthorizedUser();
-    if (!user || !["ADMIN", "CHEF_EQUIPE"].includes(user.role)) {
+    if (!user || !["ADMIN", "CHEF_EQUIPE", "CONDUCTEUR"].includes(user.role)) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
