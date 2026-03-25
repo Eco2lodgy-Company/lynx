@@ -17,16 +17,23 @@ git reset --hard origin/main
 # 3. Installation des dépendances (si nécessaire)
 echo "📦 Installation des dépendances..."
 npm install
-# Correction des permissions d'exécution (tsc, turbo, etc.) sur les VPS Linux en root
+# Correction des permissions d'exécution
 chmod +x node_modules/typescript/bin/tsc 2>/dev/null || true
 chmod +x node_modules/.bin/* 2>/dev/null || true
-find packages apps infra -type d -name ".bin" -exec chmod +x {}/* \; 2>/dev/null || true
 
-# Diagnostic si erreur de corruption tsc
-echo "🔍 Vérification de l'espace disque..."
-df -h | grep '^/dev/'
-echo "🔍 Vérification de l'intégrité de tsc.js à la ligne 2410..."
-sed -n '2410p' node_modules/typescript/lib/tsc.js || echo "Fichier tsc.js inaccessible"
+# Diagnostic approfondi
+echo "🔍 Rapport système :"
+df -h | grep -E '^/dev/|Filesystem'
+free -m
+echo "🔍 Test d'intégrité de TypeScript..."
+node -e "try { require('typescript'); console.log('✅ TypeScript Load OK'); } catch(e) { console.log('❌ TypeScript Corrompu:', e.message); }"
+
+if [ $? -ne 0 ]; then
+  echo "⚠️ Corruption détectée. Nettoyage forcé..."
+  npm cache clean --force
+  rm -rf node_modules/typescript
+  npm install typescript@5.4.5 --no-cache
+fi
 
 # 4. Synchronisation Prisma (Base de données)
 echo "🗄️ Synchronisation du schéma de base de données..."

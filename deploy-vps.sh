@@ -14,10 +14,8 @@ echo "⚙️  2. Installation des dépendances (Monorepo)..."
 npm install
 
 # 3. Synchronisation de la base de données (si Prisma est utilisé)
-# Facultatif : décommentez si vous utilisez Prisma
-# echo "🗄️  Génération et push du schéma Prisma..."
-# npx prisma db push
-# npx prisma generate
+echo "🗄️  Génération et push du schéma Prisma..."
+npx prisma generate --schema=infra/prisma/schema.prisma || npx prisma generate
 
 # 4. Build du projet (Turborepo gèrera l'ordre des builds : packages -> api -> web)
 echo "🏗️  3. Construction de l'application Web et de l'API..."
