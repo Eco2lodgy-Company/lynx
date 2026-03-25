@@ -22,6 +22,12 @@ chmod +x node_modules/typescript/bin/tsc 2>/dev/null || true
 chmod +x node_modules/.bin/* 2>/dev/null || true
 find packages apps infra -type d -name ".bin" -exec chmod +x {}/* \; 2>/dev/null || true
 
+# Diagnostic si erreur de corruption tsc
+echo "🔍 Vérification de l'espace disque..."
+df -h | grep '^/dev/'
+echo "🔍 Vérification de l'intégrité de tsc.js à la ligne 2410..."
+sed -n '2410p' node_modules/typescript/lib/tsc.js || echo "Fichier tsc.js inaccessible"
+
 # 4. Synchronisation Prisma (Base de données)
 echo "🗄️ Synchronisation du schéma de base de données..."
 npx prisma db push
