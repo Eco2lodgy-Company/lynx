@@ -1,3 +1,4 @@
+import { Router } from "express";
 import { authMiddleware, AuthRequest, requireRole } from "../middleware/auth";
 import prisma from "@lynx/prisma";
 import multer from "multer";
