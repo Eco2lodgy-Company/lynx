@@ -4,7 +4,7 @@
   "private": true,
   "main": "src/index.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "npx tsc"
   },
   "dependencies": {
     "ioredis": "^5.3.2"
