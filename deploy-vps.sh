@@ -25,8 +25,7 @@ npm run build
 
 # 5. Redémarrage des services avec PM2
 echo "🔄 4. Redémarrage des services..."
-# Assurez-vous que les noms correspondent à votre configuration PM2 (ecosystem.config.js)
-pm2 restart lynx-api lynx-web || pm2 restart all
+pm2 restart lynx
 
 echo "✅ Déploiement terminé avec succès !"
 echo "🌐 L'application Web et l'API sont à jour."
