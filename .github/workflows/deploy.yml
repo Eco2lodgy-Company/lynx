@@ -1,0 +1,88 @@
+name: Lynx CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-and-test:
+    name: Build & Test (Turborepo)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run Prisma Generate
+        run: npm run generate -w @lynx/prisma
+
+      - name: Run Linter
+        run: npx turbo run lint
+
+      - name: Run Tests
+        run: npx turbo run test
+
+      - name: Build Web Application
+        run: npx turbo run build --filter=web
+
+      - name: Build API Server
+        run: npx turbo run build --filter=api
+
+  deploy-vps:
+    name: Deploy to VPS
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd /var/www/lynx
+            git pull origin main
+            npm install --legacy-peer-deps
+            npm run generate -w @lynx/prisma
+            npx turbo run build --filter=web --filter=api
+            pm2 restart lynx-api lynx-web
+
+  deploy-mobile:
+    name: Build & Deploy Mobile (EAS)
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Setup Expo Configuration
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run EAS Build for Android
+        run: eas build --platform android --profile production --non-interactive
+        working-directory: apps/mobile
