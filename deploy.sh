@@ -17,6 +17,9 @@ git reset --hard origin/main
 # 3. Installation des dépendances (si nécessaire)
 echo "📦 Installation des dépendances..."
 npm install
+# Correction des permissions d'exécution (tsc, turbo, etc.) sur les VPS Linux en root
+chmod +x node_modules/.bin/* 2>/dev/null || true
+find packages apps infra -type d -name ".bin" -exec chmod +x {}/* \; 2>/dev/null || true
 
 # 4. Synchronisation Prisma (Base de données)
 echo "🗄️ Synchronisation du schéma de base de données..."
