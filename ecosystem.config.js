@@ -17,7 +17,7 @@ module.exports = {
       cwd: "/var/www/lynx/apps/web",
       env: {
         NODE_ENV: "production",
-        PORT: 3000
+        PORT: 3005
       }
     }
   ]
