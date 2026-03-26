@@ -31,16 +31,20 @@ npm run build
 # 6. Relance PROPRE des processus (Séparation API et Web)
 echo "♻️ Nettoyage et redémarrage des services..."
 
-# Arrêt et suppression pour éviter les conflits de ports
+# Libération forcée des ports 3000 et 3001 (tue les processus fantômes)
+echo "🧹 Libération des ports 3000 et 3001..."
+fuser -k 3000/tcp 3001/tcp || true
+
+# Arrêt et suppression PM2 pour repartir de zéro
 pm2 delete lynx next-app || true
 
-# Lancement de l'API Express avec TSX (pour gérer les packages internes .ts)
+# Lancement de l'API avec le chemin absolu vers npx/tsx
 echo "🚀 Lancement de l'API (Port 3001)..."
-PORT=3001 pm2 start "npx tsx apps/api/src/index.ts" --name "lynx" --update-env
+PORT=3001 pm2 start "npx tsx apps/api/src/index.ts" --name "lynx"
 
-# Lancement du Web Frontend (Next.js) depuis son sous-dossier (évite les erreurs de workspace)
+# Lancement du Web Frontend
 echo "🚀 Lancement du Web Frontend (Port 3000)..."
-cd apps/web && PORT=3000 pm2 start "npm run start" --name "next-app" --update-env
+cd apps/web && PORT=3000 pm2 start "npm run start" --name "next-app"
 cd ../..
 
 # 7. Persistance PM2
