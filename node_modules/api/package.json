@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "npx --yes typescript@5.5.4 tsc",
+    "build": "npx --yes -p typescript@5.5.4 tsc",
     "start": "node dist/index.js",
     "lint": "eslint"
   },

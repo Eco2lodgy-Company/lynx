@@ -4,7 +4,7 @@
   "private": true,
   "main": "src/index.ts",
   "scripts": {
-    "build": "npx --yes typescript@5.5.4 tsc"
+    "build": "npx --yes -p typescript@5.5.4 tsc"
   },
   "dependencies": {
     "ioredis": "^5.3.2"
