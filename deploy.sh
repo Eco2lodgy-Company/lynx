@@ -3,15 +3,17 @@
 # Script de déploiement automatisé pour LYNX
 # Usage: bash deploy.sh
 
-echo "🚀 Démarrage du déploiement de LYNX (v3.0 - Scorched Earth)..."
+echo "🚀 Démarrage du déploiement de LYNX (v4.0 - Total Annihilation)..."
 
-# 0. Nettoyage des dossiers racines parasites (Éviter les conflits Next/Turbo)
-echo "🧹 Purge des archives fantômes (app, mobile, src)..."
+# 0. Nettoyage RADICAL des processus
+echo "💀 Annihilation de tous les processus Node et PM2..."
+pm2 kill || true
+killall -9 node || true
+fuser -k 3000/tcp 3001/tcp 3010/tcp || true
+
+# 0.1 Purge des dossiers fantômes
+echo "🧹 Purge des archives fantômes..."
 rm -rf app mobile src next.config.ts postcss.config.mjs || true
-
-# 1. Arrêt temporaire pour libérer des ressources
-echo "⏱️ Arrêt du processus PM2..."
-pm2 stop lynx || true
 
 # 2. Synchronisation forcée avec GitHub
 echo "🔄 Synchronisation avec la branche main..."
