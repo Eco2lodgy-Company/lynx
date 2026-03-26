@@ -25,7 +25,8 @@ echo "🗄️ Synchronisation du schéma de base de données..."
 npx prisma db push
 
 # 5. Compilation monorepo
-echo "🏗️ Construction de l'application (turbo build)..."
+echo "🏗️ Construction de l'application (Nettoyage profonde)..."
+rm -rf apps/web/.next apps/api/dist
 npm run build
 
 # 6. Relance PROPRE des processus (Séparation API et Web)
