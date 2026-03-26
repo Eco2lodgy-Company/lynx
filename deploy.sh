@@ -29,10 +29,10 @@ echo "🔍 Test d'intégrité de TypeScript..."
 node -e "try { require('typescript'); console.log('✅ TypeScript Load OK'); } catch(e) { console.log('❌ TypeScript Corrompu:', e.message); }"
 
 if [ $? -ne 0 ]; then
-  echo "⚠️ Corruption détectée. Nettoyage forcé..."
+  echo "⚠️ Corruption détectée. Nettoyage TOTAL en cours..."
   npm cache clean --force
-  rm -rf node_modules/typescript
-  npm install typescript@5.4.5 --no-cache
+  rm -rf package-lock.json node_modules
+  npm install --no-cache
 fi
 
 # 4. Synchronisation Prisma (Base de données)
