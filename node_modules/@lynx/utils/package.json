@@ -5,8 +5,8 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
-    "build": "tsc",
-    "lint": "tsc --noEmit"
+    "build": "npx --yes typescript@5.5.4 tsc",
+    "lint": "npx --yes typescript@5.5.4 tsc --noEmit"
   },
   "dependencies": {
     "@lynx/types": "*",
