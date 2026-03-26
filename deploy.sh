@@ -28,10 +28,19 @@ npx prisma db push
 echo "🏗️ Construction de l'application (turbo build)..."
 npm run build
 
-# 6. Relance PROPRE du processus API
-echo "♻️ Nettoyage et redémarrage de l'API (lynx)..."
-pm2 delete lynx || true
-pm2 start "npm run start:api" --name "lynx" --update-env
+# 6. Relance PROPRE des processus (Séparation API et Web)
+echo "♻️ Nettoyage et redémarrage des services..."
+
+# Arrêt et suppression pour éviter les conflits de ports
+pm2 delete lynx next-app || true
+
+# Lancement de l'API Express sur le port 3001 (config attendue par Nginx)
+echo "🚀 Lancement de l'API (Port 3001)..."
+PORT=3001 pm2 start "npm run start:api" --name "lynx" --update-env
+
+# Lancement du Web Frontend sur le port 3000
+echo "🚀 Lancement du Web Frontend (Port 3000)..."
+PORT=3000 pm2 start "npm run start:web" --name "next-app" --update-env
 
 # 7. Persistance PM2
 pm2 save
