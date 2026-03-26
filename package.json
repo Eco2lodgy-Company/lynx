@@ -12,7 +12,10 @@
     "lint": "turbo lint",
     "dev:web": "turbo dev --filter=web",
     "dev:mobile": "turbo dev --filter=mobile",
-    "dev:api": "turbo dev --filter=api"
+    "dev:api": "turbo dev --filter=api",
+    "start": "node apps/api/dist/index.js",
+    "start:api": "node apps/api/dist/index.js",
+    "start:web": "npm run start --workspace=web"
   },
   "devDependencies": {
     "turbo": "^2.3.0"
