@@ -12,8 +12,8 @@ module.exports = {
     },
     {
       name: "lynx-web",
-      script: "npx",
-      args: "next start",
+      script: "npm",
+      args: "run start",
       cwd: "/var/www/lynx/apps/web",
       env: {
         NODE_ENV: "production",
