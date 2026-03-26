@@ -34,13 +34,14 @@ echo "♻️ Nettoyage et redémarrage des services..."
 # Arrêt et suppression pour éviter les conflits de ports
 pm2 delete lynx next-app || true
 
-# Lancement de l'API Express sur le port 3001 (config attendue par Nginx)
+# Lancement de l'API Express avec TSX (pour gérer les packages internes .ts)
 echo "🚀 Lancement de l'API (Port 3001)..."
-PORT=3001 pm2 start "npm run start:api" --name "lynx" --update-env
+PORT=3001 pm2 start "npx tsx apps/api/src/index.ts" --name "lynx" --update-env
 
-# Lancement du Web Frontend sur le port 3000
+# Lancement du Web Frontend (Next.js) depuis son sous-dossier (évite les erreurs de workspace)
 echo "🚀 Lancement du Web Frontend (Port 3000)..."
-PORT=3000 pm2 start "npm run start:web" --name "next-app" --update-env
+cd apps/web && PORT=3000 pm2 start "npm run start" --name "next-app" --update-env
+cd ../..
 
 # 7. Persistance PM2
 pm2 save
