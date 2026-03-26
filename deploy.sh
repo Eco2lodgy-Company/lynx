@@ -53,6 +53,8 @@ EOF
 echo "🏗️ Construction de l'application (Nettoyage profonde)..."
 rm -rf apps/web/.next apps/api/dist
 npm run build
+echo "🏗️ Construction spécifique du Web..."
+cd apps/web && npm run build && cd ../..
 
 # 6. Relance PROPRE des processus (Via Ecosystem Config)
 echo "♻️ Nettoyage et redémarrage des services..."
