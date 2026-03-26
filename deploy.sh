@@ -13,6 +13,7 @@ pm2 stop lynx || true
 echo "🔄 Synchronisation avec la branche main..."
 git fetch origin
 git reset --hard origin/main
+git submodule update --init --recursive --remote || true
 
 # 3. Installation des dépendances (Nettoyage AGRESSIF pour corriger les erreurs runtime)
 echo "📦 Nettoyage et installation des dépendances..."
