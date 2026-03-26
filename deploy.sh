@@ -54,24 +54,18 @@ echo "🏗️ Construction de l'application (Nettoyage profonde)..."
 rm -rf apps/web/.next apps/api/dist
 npm run build
 
-# 6. Relance PROPRE des processus (Séparation API et Web)
+# 6. Relance PROPRE des processus (Via Ecosystem Config)
 echo "♻️ Nettoyage et redémarrage des services..."
 
-# Libération forcée des ports 3000 et 3001 (tue les processus fantômes)
-echo "🧹 Libération des ports 3000 et 3001..."
+# Libération forcée des ports 3000 et 3001
 fuser -k 3000/tcp 3001/tcp || true
 
-# Arrêt et suppression PM2 pour repartir de zéro
-pm2 delete lynx next-app || true
+# Suppression totale pour éviter les doublons de noms
+pm2 delete lynx-api lynx-web lynx next-app || true
 
-# Lancement de l'API avec le chemin absolu vers npx/tsx
-echo "🚀 Lancement de l'API (Port 3001)..."
-PORT=3001 pm2 start "npx tsx apps/api/src/index.ts" --name "lynx"
+# Lancement via le fichier ecosystem (plus robuste)
+pm2 start ecosystem.config.js --update-env
 
-# Lancement du Web Frontend
-echo "🚀 Lancement du Web Frontend (Port 3000)..."
-cd apps/web && PORT=3000 pm2 start "npm run start" --name "next-app"
-cd ../..
 
 # 7. Persistance PM2
 pm2 save
