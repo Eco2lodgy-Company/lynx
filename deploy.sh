@@ -71,7 +71,7 @@ module.exports = {
       script: "npm",
       args: "run start",
       cwd: "/var/www/lynx/apps/web",
-      env: { NODE_ENV: "production", PORT: 3005 }
+      env: { NODE_ENV: "production", PORT: 3010 }
     }
   ]
 };
@@ -87,8 +87,8 @@ cd apps/web && npm run build && cd ../..
 # 6. Relance PROPRE des processus (Via Ecosystem Config)
 echo "♻️ Nettoyage et redémarrage des services..."
 
-# Libération forcée des ports 3005 et 3001
-fuser -k 3005/tcp 3001/tcp || true
+# Libération forcée des ports 3010 et 3001
+fuser -k 3010/tcp 3001/tcp || true
 
 # Suppression totale pour éviter les doublons de noms
 pm2 delete lynx-api lynx-web lynx next-app || true
