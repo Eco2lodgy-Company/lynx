@@ -3,7 +3,11 @@
 # Script de déploiement automatisé pour LYNX
 # Usage: bash deploy.sh
 
-echo "🚀 Démarrage du déploiement de LYNX..."
+echo "🚀 Démarrage du déploiement de LYNX (v3.0 - Scorched Earth)..."
+
+# 0. Nettoyage des dossiers racines parasites (Éviter les conflits Next/Turbo)
+echo "🧹 Purge des archives fantômes (app, mobile, src)..."
+rm -rf app mobile src next.config.ts postcss.config.mjs || true
 
 # 1. Arrêt temporaire pour libérer des ressources
 echo "⏱️ Arrêt du processus PM2..."
