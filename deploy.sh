@@ -50,6 +50,29 @@ const nextConfig = {
 export default nextConfig;
 EOF
 
+# 4.6 Injection de l'Ecosystem PM2 (Force l'indépendance des processus)
+echo "⚙️ Injection de l'Ecosystem PM2..."
+cat <<EOF > ecosystem.config.js
+module.exports = {
+  apps: [
+    {
+      name: "lynx-api",
+      script: "npx",
+      args: "tsx apps/api/src/index.ts",
+      cwd: "/var/www/lynx",
+      env: { NODE_ENV: "production", PORT: 3001 }
+    },
+    {
+      name: "lynx-web",
+      script: "npm",
+      args: "run start",
+      cwd: "/var/www/lynx/apps/web",
+      env: { NODE_ENV: "production", PORT: 3000 }
+    }
+  ]
+};
+EOF
+
 # 5. Compilation monorepo
 echo "🏗️ Construction de l'application (Nettoyage profonde)..."
 rm -rf apps/web/.next apps/api/dist
