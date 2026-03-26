@@ -24,6 +24,31 @@ npm install
 echo "🗄️ Synchronisation du schéma de base de données..."
 npx prisma db push
 
+# 4.5 Injection de la configuration Next.js (Force le basePath)
+echo "⚙️ Injection de la configuration Next.js..."
+rm -f apps/web/next.config.ts apps/web/next.config.js
+cat <<EOF > apps/web/next.config.mjs
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  basePath: "/lynx",
+  assetPrefix: "/lynx",
+  async headers() {
+    return [
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Credentials", value: "true" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET,DELETE,PATCH,POST,PUT,OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" },
+        ]
+      }
+    ]
+  }
+};
+export default nextConfig;
+EOF
+
 # 5. Compilation monorepo
 echo "🏗️ Construction de l'application (Nettoyage profonde)..."
 rm -rf apps/web/.next apps/api/dist
