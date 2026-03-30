@@ -3,13 +3,12 @@
 # Script de déploiement automatisé pour LYNX
 # Usage: bash deploy.sh
 
-echo "🚀 Démarrage du déploiement de LYNX (v4.0 - Total Annihilation)..."
+echo "🚀 Démarrage du déploiement de LYNX (v5.2 - Laser Precision)..."
 
-# 0. Nettoyage RADICAL des processus
-echo "💀 Annihilation de tous les processus Node et PM2..."
-pm2 kill || true
-killall -9 node || true
-fuser -k 3000/tcp 3001/tcp 3010/tcp || true
+# 0. Nettoyage CIBLÉ des processus LYNX
+echo "🧹 Arrêt des processus LYNX uniquement..."
+pm2 delete lynx-api lynx-web || true
+fuser -k 3010/tcp 3001/tcp || true
 
 # 0.1 Purge des dossiers fantômes
 echo "🧹 Purge des archives fantômes..."
