@@ -70,10 +70,10 @@ module.exports = {
     },
     {
       name: "lynx-web",
-      script: "npm",
-      args: "run start",
+      script: "node_modules/.bin/next",
+      args: "start -p 3010",
       cwd: "/var/www/lynx/apps/web",
-      env: { NODE_ENV: "production", PORT: 3010 }
+      env: { NODE_ENV: "production" }
     }
   ]
 };
