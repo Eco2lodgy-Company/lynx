@@ -1,7 +1,8 @@
 #!/bin/bash
+set -e
 
 # Script de déploiement pour LYNX sur VPS (Ubuntu/Debian)
-# À placer et exécuter à la racine du projet sur le serveur de production (/var/www/lynx ou similaire)
+# À exécuter depuis /var/www/lynx sur le serveur de production
 
 echo "🚀 Démarrage du déploiement de LYNX..."
 
@@ -11,19 +12,27 @@ git pull origin main
 
 # 2. Installation des dépendances
 echo "⚙️  2. Installation des dépendances (Monorepo)..."
-npm install
+npm install --legacy-peer-deps
 
-# 3. Synchronisation de la base de données (si Prisma est utilisé)
-echo "🗄️  Génération et push du schéma Prisma..."
-npx prisma generate --schema=infra/prisma/schema.prisma || npx prisma generate
+# 3. Génération du client Prisma
+echo "🗄️  3. Génération du client Prisma..."
+npm run generate -w @lynx/prisma
 
-# 4. Build du projet (Turborepo gèrera l'ordre des builds : packages -> api -> web)
-echo "🏗️  3. Construction de l'application Web et de l'API..."
-npm run build
+# 4. Build du projet (Turborepo : packages → api → web)
+echo "🏗️  4. Construction de l'API et de l'application Web..."
+npx turbo run build --filter=api --filter=web
 
 # 5. Redémarrage des services avec PM2
-echo "🔄 4. Redémarrage des services..."
-pm2 restart lynx
+echo "🔄 5. Redémarrage des services PM2..."
+pm2 restart lynx-api lynx-web || pm2 start ecosystem.config.js
 
+# 6. Sauvegarde de la config PM2
+pm2 save
+
+echo ""
 echo "✅ Déploiement terminé avec succès !"
-echo "🌐 L'application Web et l'API sont à jour."
+echo "🌐 API  → https://alphatek.fr/lynx/api"
+echo "🌐 Web  → https://alphatek.fr/lynx"
+echo ""
+echo "📊 Statut des processus :"
+pm2 status
