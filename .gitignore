@@ -51,3 +51,8 @@ next-env.d.ts
 !/public/uploads/.gitkeep
 tsc_output.txt
 response.html
+node_modules
+node_modules
+node_modules
+node_modules
+node_modules
