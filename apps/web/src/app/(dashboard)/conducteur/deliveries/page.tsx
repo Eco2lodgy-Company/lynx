@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import { Truck, Plus, Loader2, X, CalendarClock, Package, ChevronDown, CheckCircle } from "lucide-react";
 import { 

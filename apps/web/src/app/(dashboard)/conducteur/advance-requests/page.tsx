@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback } from "react";
 import { CircleDollarSign, Plus, Loader2, X, CheckCircle, XCircle, Clock, ChevronDown } from "lucide-react";
 import { 
