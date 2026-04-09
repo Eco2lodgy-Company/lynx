@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "lynx-app",
+    "slug": "lynx-app",
+    "version": "2.0.0",
+    "sdkVersion": "51.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo-lynx.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/logo-lynx.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "android": {
+      "package": "com.nawarazak.lynx",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "lynx",
+    "plugins": [
+      "expo-router"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7881ced9-7c1a-4956-91bd-742ed7dd02a7"
+      }
+    },
+    "owner": "nawarazak"
+  }
+}
