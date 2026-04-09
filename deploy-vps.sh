@@ -20,6 +20,7 @@ npm run generate -w @lynx/prisma
 
 # 4. Build du projet (Turborepo : packages → api → web)
 echo "🏗️  4. Construction de l'API et de l'application Web..."
+chmod +x node_modules/.bin/turbo node_modules/.bin/tsx 2>/dev/null || true
 npx turbo run build --filter=api --filter=web
 
 # 5. Redémarrage des services avec PM2
