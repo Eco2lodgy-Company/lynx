@@ -15,7 +15,7 @@
     "dev:api": "turbo dev --filter=api",
     "start:api": "node apps/api/dist/index.js",
     "start:web": "npm run start --workspace=web",
-    "postinstall": "node -e \"const fs=require('fs'); const file='node_modules/nativewind/dist/metro/tailwind/index.js'; if(fs.existsSync(file)) { let code = fs.readFileSync(file, 'utf8'); code = code.replace(/const isV3 = .*/, 'const isV3 = true;'); fs.writeFileSync(file, code); }\""
+    "postinstall": "node -e \"const fs = require('fs'); if (fs.existsSync('node_modules/nativewind')) { fs.cpSync('node_modules/nativewind', 'apps/mobile/node_modules/nativewind', { recursive: true }); fs.rmSync('node_modules/nativewind', { recursive: true, force: true }); console.log('Moved nativewind to apps/mobile node_modules'); }\""
   },
   "devDependencies": {
     "tsx": "^4.11.0",
