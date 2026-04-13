@@ -14,11 +14,16 @@
     "dev:mobile": "turbo dev --filter=mobile",
     "dev:api": "turbo dev --filter=api",
     "start:api": "node apps/api/dist/index.js",
-    "start:web": "npm run start --workspace=web"
+    "start:web": "npm run start --workspace=web",
+    "postinstall": "node -e \"const fs=require('fs'); const file='node_modules/nativewind/dist/metro/tailwind/index.js'; if(fs.existsSync(file)) { fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace(/isV3/g, 'true')); }\""
   },
   "devDependencies": {
     "tsx": "^4.11.0",
     "turbo": "^2.3.0"
   },
-  "packageManager": "npm@10.0.0"
+  "packageManager": "npm@10.0.0",
+  "dependencies": {
+    "ajv": "^8.18.0",
+    "isexe": "^4.0.0"
+  }
 }
